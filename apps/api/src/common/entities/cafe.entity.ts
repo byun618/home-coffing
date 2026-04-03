@@ -19,8 +19,8 @@ export class Cafe {
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
-  @Property({ default: '우리집 카페' })
-  name: string = '우리집 카페';
+  @Property({ default: '홈 커핑' })
+  name: string = '홈 커핑';
 
   @ManyToOne(() => User)
   createdBy!: User;

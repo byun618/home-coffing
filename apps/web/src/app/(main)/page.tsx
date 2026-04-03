@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { BeanWithStats } from '@home-coffing/shared-types';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -10,6 +11,7 @@ import { BeanEditModal } from '@/components/bean/BeanEditModal';
 import { ConsumptionModal } from '@/components/consumption/ConsumptionModal';
 
 export default function HomePage() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [beans, setBeans] = useState<BeanWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,9 +50,17 @@ export default function HomePage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>홈 커핑</h1>
-        <button className={styles.logoutBtn} onClick={logout}>
-          로그아웃
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={styles.cafeBtn}
+            onClick={() => router.push('/members')}
+          >
+            카페
+          </button>
+          <button className={styles.logoutBtn} onClick={logout}>
+            로그아웃
+          </button>
+        </div>
       </header>
 
       <main className={styles.content}>

@@ -1,0 +1,120 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 var(--spacing-page);
+}
+
+.backBtn {
+  font-size: 20px;
+  color: var(--color-text-primary);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+}
+
+.cafeInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px var(--spacing-page);
+  margin: 0 var(--spacing-page);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+}
+
+.cafeEmoji {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: var(--color-primary-subtle);
+  border-radius: 50%;
+}
+
+.cafeName {
+  font-size: var(--font-size-heading);
+  font-weight: 600;
+}
+
+.cafeSub {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.list {
+  padding: 16px 0;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px var(--spacing-page);
+}
+
+.memberEmoji {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--color-primary-subtle);
+  border-radius: 50%;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberName {
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+.memberRole {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--spacing-page);
+  margin-top: auto;
+}
+
+.primaryBtn {
+  width: 100%;
+  height: var(--height-button);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: var(--radius-button);
+}
+
+.secondaryBtn {
+  width: 100%;
+  height: var(--height-button);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-radius: var(--radius-button);
+}

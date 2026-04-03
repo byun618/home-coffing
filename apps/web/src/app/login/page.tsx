@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import styles from './page.module.css';
@@ -13,11 +13,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (loading) return null;
-  if (user) {
-    router.replace(user.defaultCupsPerDay ? '/' : '/onboarding');
-    return null;
-  }
+  useEffect(() => {
+    if (loading) return;
+    if (user) {
+      router.replace(user.defaultCupsPerDay ? '/' : '/onboarding');
+    }
+  }, [user, loading, router]);
+
+  if (loading || user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

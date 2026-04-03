@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -14,15 +14,16 @@ export default function OnboardingPage() {
   const [gramsPerCup, setGramsPerCup] = useState(20);
   const [submitting, setSubmitting] = useState(false);
 
-  if (loading) return null;
-  if (!user) {
-    router.replace('/login');
-    return null;
-  }
-  if (user.defaultCupsPerDay) {
-    router.replace('/');
-    return null;
-  }
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.replace('/login');
+    } else if (user.defaultCupsPerDay) {
+      router.replace('/');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user || user.defaultCupsPerDay) return null;
 
   const handleSubmit = async () => {
     setSubmitting(true);

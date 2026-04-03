@@ -17,6 +17,18 @@
   font-weight: 700;
 }
 
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.cafeBtn {
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
 .logoutBtn {
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
