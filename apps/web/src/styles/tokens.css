@@ -1,0 +1,32 @@
+:root {
+  --color-bg: #F2EDE8;
+  --color-surface: #FFFFFF;
+  --color-primary: #5C3D2E;
+  --color-primary-light: #8B6F5E;
+  --color-primary-subtle: #F5F0EB;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #8C8C8C;
+  --color-text-tertiary: #BBBBBB;
+  --color-border: #EEEEEE;
+  --color-danger: #E54D2E;
+  --color-danger-subtle: #FFF0ED;
+  --color-success: #4A9E6B;
+  --color-success-subtle: #EDF7F0;
+  --font-family: 'Pretendard', 'Inter', sans-serif;
+  --font-title: 700 20px var(--font-family);
+  --font-heading: 600 17px var(--font-family);
+  --font-body: 400 15px var(--font-family);
+  --font-caption: 500 13px var(--font-family);
+  --font-small: 500 11px var(--font-family);
+  --spacing-page: 20px;
+  --spacing-section: 16px;
+  --spacing-card-padding: 20px;
+  --spacing-card-gap: 14px;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-input: 10px;
+  --radius-badge: 20px;
+  --radius-modal: 24px;
+  --height-input: 48px;
+  --height-button: 52px;
+}

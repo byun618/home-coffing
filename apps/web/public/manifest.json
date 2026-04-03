@@ -1,0 +1,9 @@
+{
+  "name": "홈 커핑",
+  "short_name": "홈커핑",
+  "description": "신경 안 써도 원두가 끊기지 않는 집",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2EDE8",
+  "theme_color": "#F2EDE8"
+}

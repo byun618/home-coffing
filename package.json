@@ -1,0 +1,27 @@
+{
+  "name": "home-coffing",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "docker:up": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "schema:create": "pnpm --filter @home-coffing/api schema:create",
+    "schema:update": "pnpm --filter @home-coffing/api schema:update",
+    "schema:drop": "pnpm --filter @home-coffing/api schema:drop",
+    "db:reset": "pnpm schema:drop && pnpm schema:create",
+    "docker:deploy": "git pull && docker-compose up -d --build"
+  },
+  "devDependencies": {
+    "turbo": "^2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "bcrypt"
+    ]
+  },
+  "packageManager": "pnpm@10.8.1"
+}

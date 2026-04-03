@@ -1,0 +1,67 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.label {
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.input {
+  width: 100%;
+  height: var(--height-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: 0 14px;
+  font-size: var(--font-size-body);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.button {
+  width: 100%;
+  height: var(--height-button);
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-body);
+  font-weight: 600;
+}
+
+.button:disabled {
+  opacity: 0.6;
+}
+
+.dangerBtn {
+  width: 100%;
+  height: var(--height-button);
+  border-radius: var(--radius-button);
+  background: none;
+  color: var(--color-danger);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
