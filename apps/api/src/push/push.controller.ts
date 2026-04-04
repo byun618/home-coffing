@@ -1,18 +1,6 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Body,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body } from '@nestjs/common';
 import { PushService } from './push.service';
 import { PushSubscribeDto } from './dto/push-subscribe.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { User } from '../common/entities';
 
 @Controller('push')
 export class PushController {
@@ -24,15 +12,12 @@ export class PushController {
   }
 
   @Post('subscribe')
-  @UseGuards(JwtAuthGuard)
-  subscribe(@CurrentUser() user: User, @Body() dto: PushSubscribeDto) {
-    return this.pushService.subscribe(user, dto);
+  subscribe(@Body() dto: PushSubscribeDto) {
+    return this.pushService.subscribe(dto);
   }
 
   @Delete('subscribe')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  unsubscribe(@CurrentUser() user: User) {
-    return this.pushService.unsubscribe(user);
+  unsubscribe(@Body() body: { endpoint: string }) {
+    return this.pushService.unsubscribe(body.endpoint);
   }
 }

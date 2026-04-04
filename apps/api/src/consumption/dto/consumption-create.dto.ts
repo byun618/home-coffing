@@ -1,23 +1,18 @@
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsNumber, Min, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class ConsumptionCreateDto {
+class ConsumptionItem {
+  @IsNumber()
+  beanId!: number;
+
   @IsNumber()
   @Min(0.1)
   amount!: number;
+}
 
-  @IsNumber()
-  @IsOptional()
-  water?: number;
-
-  @IsString()
-  @IsOptional()
-  grindSize?: string;
-
-  @IsString()
-  @IsOptional()
-  method?: string;
-
-  @IsString()
-  @IsOptional()
-  note?: string;
+export class ConsumptionCreateDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ConsumptionItem)
+  items!: ConsumptionItem[];
 }

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { EntityManager } from '@mikro-orm/mysql';
-import { Bean, CafeMember } from '../common/entities';
+import { Bean } from '../common/entities';
 import { BeanService } from '../bean/bean.service';
 import { PushService } from '../push/push.service';
 
@@ -22,28 +22,22 @@ export class SchedulerService {
     const beans = await this.em.find(
       Bean,
       { remainAmount: { $gt: 0 } },
-      { populate: ['cafe', 'createdBy'] },
+      { populate: ['cafe'] },
     );
 
     for (const bean of beans) {
-      const stats = await this.beanService.buildBeanWithStats(
-        bean,
-        bean.createdBy,
-      );
+      const stats = await this.beanService.buildBeanWithStats(bean);
 
-      if (stats.status !== 'order') continue;
+      if (stats.status === 'safe' || stats.status === 'degassing' || stats.status === 'empty') continue;
 
-      const members = await this.em.find(CafeMember, { cafe: bean.cafe });
-
+      const label = stats.status === 'order' ? '지금 시켜야 해요' : '곧 시켜야 해요';
       const payload = JSON.stringify({
-        title: '원두 주문할 때!',
-        body: `${bean.name} - 약 ${stats.remainDays}일치 남았어요`,
+        title: `${bean.name} - ${label}`,
+        body: `${stats.remainAmount}g 남았어요`,
         url: '/',
       });
 
-      for (const member of members) {
-        await this.pushService.sendToUser(member.user.id, payload);
-      }
+      await this.pushService.sendToAll(payload);
     }
 
     this.logger.log('주문 타이밍 체크 완료');

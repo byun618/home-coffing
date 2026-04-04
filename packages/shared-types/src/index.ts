@@ -1,58 +1,28 @@
-// === Auth ===
-
-export interface SignupRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  defaultCupsPerDay: number | null;
-  defaultGramsPerCup: number | null;
-  createdAt: string;
-}
-
-// === Onboarding ===
-
-export interface OnboardingRequest {
-  defaultCupsPerDay: number;
-  defaultGramsPerCup: number;
-}
-
 // === Bean ===
 
 export interface BeanCreateRequest {
   name: string;
   totalAmount: number;
+  orderedAt: string;
   roastDate: string;
-  perCup: number;
-  deliveryDays: number;
+  arrivedAt?: string;
   degassingDays: number;
+  cupsPerDay: number;
+  gramsPerCup: number;
 }
 
 export interface BeanUpdateRequest {
   name?: string;
   totalAmount?: number;
+  orderedAt?: string;
   roastDate?: string;
-  perCup?: number;
-  deliveryDays?: number;
+  arrivedAt?: string | null;
   degassingDays?: number;
+  cupsPerDay?: number;
+  gramsPerCup?: number;
 }
 
-export type BeanStatus = 'safe' | 'order';
+export type BeanStatus = 'degassing' | 'safe' | 'soon' | 'order' | 'empty';
 
 export interface BeanWithStats {
   id: number;
@@ -60,28 +30,41 @@ export interface BeanWithStats {
   name: string;
   totalAmount: number;
   remainAmount: number;
+  orderedAt: string;
   roastDate: string;
-  perCup: number;
-  deliveryDays: number;
+  arrivedAt: string | null;
   degassingDays: number;
-  createdBy: number;
+  cupsPerDay: number;
+  gramsPerCup: number;
   createdAt: string;
-  remainCups: number;
-  remainDays: number;
   progress: number;
   rop: number;
   status: BeanStatus;
   dailyConsumption: number;
+  degassingEndDate: string | null;
 }
 
 // === Consumption ===
 
 export interface ConsumptionCreateRequest {
+  items: { beanId: number; amount: number }[];
+}
+
+export interface ConsumptionResult {
+  results: { beanId: number; remainAmount: number }[];
+}
+
+export interface ConsumptionItem {
+  id: number;
+  beanId: number;
+  beanName: string;
   amount: number;
-  water?: number;
-  grindSize?: string;
-  method?: string;
-  note?: string;
+  createdAt: string;
+}
+
+export interface ConsumptionListResponse {
+  items: ConsumptionItem[];
+  total: number;
 }
 
 // === Cafe ===
@@ -89,29 +72,6 @@ export interface ConsumptionCreateRequest {
 export interface CafeInfo {
   id: number;
   name: string;
-  memberCount: number;
-}
-
-export type CafeMemberRole = 'admin' | 'member';
-
-export interface CafeMember {
-  id: number;
-  userId: number;
-  userName: string;
-  role: CafeMemberRole;
-  joinedAt: string;
-}
-
-// === Invite ===
-
-export interface InviteCreateRequest {
-  expiresInHours?: number;
-}
-
-export interface InviteInfo {
-  cafeName: string;
-  invitedByName: string;
-  expiresAt: string;
 }
 
 // === Push ===
@@ -122,12 +82,4 @@ export interface PushSubscribeRequest {
     p256dh: string;
     auth: string;
   };
-}
-
-// === API Response ===
-
-export interface ApiResponse<T = void> {
-  success: boolean;
-  data?: T;
-  error?: string;
 }

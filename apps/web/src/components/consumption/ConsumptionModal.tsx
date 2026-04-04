@@ -7,34 +7,35 @@ import { BottomModal } from '../ui/BottomModal';
 import styles from './ConsumptionModal.module.css';
 
 interface ConsumptionModalProps {
-  bean: BeanWithStats;
+  beans: BeanWithStats[];
   onClose: () => void;
 }
 
-export function ConsumptionModal({ bean, onClose }: ConsumptionModalProps) {
-  const [amount, setAmount] = useState(bean.perCup);
-  const [recipeOpen, setRecipeOpen] = useState(false);
-  const [water, setWater] = useState('');
-  const [grindSize, setGrindSize] = useState('');
-  const [method, setMethod] = useState('');
-  const [note, setNote] = useState('');
+export function ConsumptionModal({ beans, onClose }: ConsumptionModalProps) {
+  const activeBeans = beans.filter((b) => b.remainAmount > 0);
+  const [amounts, setAmounts] = useState<Record<number, number>>(
+    Object.fromEntries(activeBeans.map((b) => [b.id, 0])),
+  );
   const [submitting, setSubmitting] = useState(false);
 
-  const overRemain = amount > bean.remainAmount;
+  const setAmount = (beanId: number, value: number) => {
+    setAmounts((prev) => ({ ...prev, [beanId]: Math.max(0, value) }));
+  };
+
+  const hasAny = Object.values(amounts).some((v) => v > 0);
 
   const handleSubmit = async () => {
-    if (amount <= 0) return;
+    const items = Object.entries(amounts)
+      .filter(([, amount]) => amount > 0)
+      .map(([beanId, amount]) => ({ beanId: Number(beanId), amount }));
+
+    if (items.length === 0) return;
+
     setSubmitting(true);
     try {
-      await api(`/beans/${bean.id}/consumptions`, {
+      await api('/consumptions', {
         method: 'POST',
-        body: JSON.stringify({
-          amount,
-          ...(water ? { water: Number(water) } : {}),
-          ...(grindSize ? { grindSize } : {}),
-          ...(method ? { method } : {}),
-          ...(note ? { note } : {}),
-        }),
+        body: JSON.stringify({ items }),
       });
       onClose();
     } finally {
@@ -42,95 +43,49 @@ export function ConsumptionModal({ bean, onClose }: ConsumptionModalProps) {
     }
   };
 
+  if (activeBeans.length === 0) {
+    return (
+      <BottomModal title="소비 기록" onClose={onClose}>
+        <p className={styles.emptyText}>먼저 원두를 등록해주세요</p>
+      </BottomModal>
+    );
+  }
+
   return (
     <BottomModal title="소비 기록" onClose={onClose}>
       <div className={styles.form}>
-        <div className={styles.beanName}>
-          {bean.name} ({bean.roastDate})
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>사용량 (g)</label>
-          <div className={styles.stepper}>
-            <button
-              className={styles.stepperBtn}
-              onClick={() => setAmount(Math.max(1, amount - 1))}
-            >
-              −
-            </button>
-            <div className={styles.stepperValue}>{amount}</div>
-            <button
-              className={styles.stepperBtn}
-              onClick={() => setAmount(amount + 1)}
-            >
-              +
-            </button>
-          </div>
-          <p className={styles.hint}>
-            기본값: 1잔 기준 ({bean.perCup}g)
-          </p>
-          {overRemain && (
-            <p className={styles.warning}>남은 양보다 많아요</p>
-          )}
-        </div>
-
-        <div className={styles.divider} />
-
-        <button
-          className={styles.toggleBtn}
-          onClick={() => setRecipeOpen(!recipeOpen)}
-        >
-          레시피 기록 (선택)
-          <span>{recipeOpen ? '▾' : '▸'}</span>
-        </button>
-
-        {recipeOpen && (
-          <div className={styles.recipe}>
-            <div className={styles.recipeRow}>
-              <span className={styles.recipeLabel}>물 양 (ml)</span>
+        {activeBeans.map((bean) => (
+          <div key={bean.id} className={styles.row}>
+            <span className={styles.beanName}>{bean.name}</span>
+            <div className={styles.stepper}>
+              <button
+                className={styles.stepperBtn}
+                onClick={() => setAmount(bean.id, (amounts[bean.id] ?? 0) - 1)}
+              >
+                −
+              </button>
               <input
-                className={styles.recipeInput}
+                className={styles.stepperInput}
                 type="number"
-                value={water}
-                onChange={(e) => setWater(e.target.value)}
-                placeholder="250"
+                value={amounts[bean.id] ?? 0}
+                onChange={(e) => setAmount(bean.id, Number(e.target.value) || 0)}
+                min={0}
+                step="0.1"
               />
-            </div>
-            <div className={styles.recipeRow}>
-              <span className={styles.recipeLabel}>분쇄도</span>
-              <input
-                className={styles.recipeInput}
-                value={grindSize}
-                onChange={(e) => setGrindSize(e.target.value)}
-                placeholder="중간 (20클릭)"
-              />
-            </div>
-            <div className={styles.recipeRow}>
-              <span className={styles.recipeLabel}>브루잉 방법</span>
-              <input
-                className={styles.recipeInput}
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                placeholder="핸드드립"
-              />
-            </div>
-            <div className={styles.recipeNoteField}>
-              <span className={styles.recipeLabel}>메모</span>
-              <textarea
-                className={styles.recipeTextarea}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="메모"
-                rows={2}
-              />
+              <button
+                className={styles.stepperBtn}
+                onClick={() => setAmount(bean.id, (amounts[bean.id] ?? 0) + 1)}
+              >
+                +
+              </button>
             </div>
           </div>
-        )}
+        ))}
 
         <button
           className={styles.button}
           onClick={handleSubmit}
-          disabled={submitting || amount <= 0}
+          disabled={submitting || !hasAny}
         >
           {submitting ? '기록 중...' : '기록'}
         </button>

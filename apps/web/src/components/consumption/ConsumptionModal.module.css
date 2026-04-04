@@ -4,135 +4,60 @@
   gap: 20px;
 }
 
-.beanName {
-  font-size: var(--font-size-body);
-  color: var(--color-text-secondary);
-}
-
-.field {
+.row {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.label {
-  font-size: var(--font-size-caption);
+.beanName {
+  font-size: 14px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 .stepper {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
 .stepperBtn {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-input);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  font-size: 20px;
+  font-size: 16px;
   color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.stepperValue {
-  flex: 1;
-  height: 48px;
-  border-radius: var(--radius-input);
+.stepperInput {
+  width: 64px;
+  height: 36px;
+  border-radius: 8px;
   background: var(--color-primary-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+  border: none;
+  text-align: center;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-primary);
-}
-
-.hint {
-  font-size: 12px;
-  color: var(--color-text-tertiary);
-}
-
-.warning {
-  font-size: 12px;
-  color: var(--color-danger);
-}
-
-.divider {
-  height: 1px;
-  background: var(--color-border);
-}
-
-.toggleBtn {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.recipe {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  background: var(--color-background);
-  border-radius: 12px;
-}
-
-.recipeRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recipeLabel {
-  font-size: var(--font-size-caption);
-  color: var(--color-text-secondary);
-}
-
-.recipeInput {
-  width: 140px;
-  height: 36px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0 10px;
-  font-size: var(--font-size-caption);
-  background: var(--color-surface);
-  text-align: right;
   outline: none;
-}
-
-.recipeInput:focus {
-  border-color: var(--color-primary);
-}
-
-.recipeNoteField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.recipeTextarea {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 10px;
-  font-size: var(--font-size-caption);
-  background: var(--color-surface);
-  outline: none;
-  resize: none;
   font-family: inherit;
 }
 
-.recipeTextarea:focus {
-  border-color: var(--color-primary);
+.stepperInput:focus {
+  outline: 2px solid var(--color-primary);
+}
+
+.emptyText {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 20px 0;
 }
 
 .button {

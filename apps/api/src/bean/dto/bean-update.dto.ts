@@ -12,20 +12,28 @@ export class BeanUpdateDto {
 
   @IsDateString()
   @IsOptional()
+  orderedAt?: string;
+
+  @IsDateString()
+  @IsOptional()
   roastDate?: string;
 
-  @IsNumber()
+  @IsDateString()
   @IsOptional()
-  @Min(1)
-  perCup?: number;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  deliveryDays?: number;
+  arrivedAt?: string;
 
   @IsNumber()
   @IsOptional()
   @Min(0)
   degassingDays?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0.01)
+  cupsPerDay?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0.01)
+  gramsPerCup?: number;
 }

@@ -3,9 +3,7 @@ import {
   OptionalProps,
   PrimaryKey,
   Property,
-  ManyToOne,
 } from '@mikro-orm/core';
-import { User } from './user.entity';
 
 @Entity()
 export class PushSubscription {
@@ -13,9 +11,6 @@ export class PushSubscription {
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
-
-  @ManyToOne(() => User)
-  user!: User;
 
   @Property({ columnType: 'text' })
   endpoint!: string;

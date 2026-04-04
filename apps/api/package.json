@@ -20,16 +20,11 @@
     "@mikro-orm/nestjs": "^6",
     "@nestjs/common": "^11",
     "@nestjs/core": "^11",
-    "@nestjs/jwt": "^11",
-    "@nestjs/passport": "^11",
     "@nestjs/platform-express": "^11",
     "@nestjs/schedule": "^5",
-    "bcrypt": "^6",
     "class-transformer": "^0.5",
     "class-validator": "^0.14",
     "dotenv": "^17",
-    "passport": "^0.7",
-    "passport-jwt": "^4",
     "reflect-metadata": "^0.2",
     "rxjs": "^7",
     "web-push": "^3"
@@ -43,10 +38,8 @@
   "devDependencies": {
     "@nestjs/cli": "^11",
     "@nestjs/schematics": "^11",
-    "@types/bcrypt": "^5",
     "@types/express": "^5",
     "@types/node": "^22",
-    "@types/passport-jwt": "^4",
     "@types/web-push": "^3",
     "ts-node": "^10.9.2",
     "typescript": "^5.7"

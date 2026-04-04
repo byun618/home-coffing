@@ -8,12 +8,11 @@ import {
   OneToMany,
 } from '@mikro-orm/core';
 import { Cafe } from './cafe.entity';
-import { User } from './user.entity';
 import { Consumption } from './consumption.entity';
 
 @Entity()
 export class Bean {
-  [OptionalProps]?: 'createdAt' | 'consumptions';
+  [OptionalProps]?: 'arrivedAt' | 'createdAt' | 'consumptions';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
@@ -31,19 +30,22 @@ export class Bean {
   remainAmount!: number;
 
   @Property({ type: 'date' })
+  orderedAt!: Date;
+
+  @Property({ type: 'date' })
   roastDate!: Date;
 
-  @Property({ columnType: 'decimal(10,1)' })
-  perCup!: number;
+  @Property({ type: 'date', nullable: true })
+  arrivedAt: Date | null = null;
 
-  @Property()
-  deliveryDays!: number;
-
-  @Property()
+  @Property({ default: 7 })
   degassingDays!: number;
 
-  @ManyToOne(() => User)
-  createdBy!: User;
+  @Property({ columnType: 'decimal(10,2)', default: 2 })
+  cupsPerDay!: number;
+
+  @Property({ columnType: 'decimal(10,2)', default: 20 })
+  gramsPerCup!: number;
 
   @OneToMany(() => Consumption, (consumption) => consumption.bean)
   consumptions = new Collection<Consumption>(this);

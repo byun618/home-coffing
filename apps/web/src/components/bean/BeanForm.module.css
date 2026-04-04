@@ -42,6 +42,16 @@
   gap: 12px;
 }
 
+.hint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.calcHint {
+  font-size: 12px;
+  color: var(--color-success);
+}
+
 .button {
   width: 100%;
   height: var(--height-button);
