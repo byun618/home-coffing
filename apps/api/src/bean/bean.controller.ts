@@ -7,6 +7,8 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { BeanService } from './bean.service';
 import { BeanCreateDto } from './dto/bean-create.dto';
@@ -32,6 +34,7 @@ export class BeanController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.beanService.remove(id);
   }

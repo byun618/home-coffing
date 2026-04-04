@@ -75,7 +75,7 @@
 .badgeDanger { background: var(--color-danger-subtle); color: var(--color-danger); }
 .badgeEmpty { background: #F5F5F5; color: var(--color-text-secondary); }
 
-.progressBg { height: 6px; border-radius: 3px; background: var(--color-border); }
+.progressBg { width: 100%; height: 6px; border-radius: 3px; background: #E0E0E0; }
 .progressFill { height: 100%; border-radius: 3px; background: var(--color-primary); transition: width 0.3s; }
 
 .stats { font-size: var(--font-size-body); color: var(--color-text-secondary); }

@@ -13,13 +13,15 @@ interface ConsumptionModalProps {
 
 export function ConsumptionModal({ beans, onClose }: ConsumptionModalProps) {
   const activeBeans = beans.filter((b) => b.remainAmount > 0);
-  const [amounts, setAmounts] = useState<Record<number, number>>(
-    Object.fromEntries(activeBeans.map((b) => [b.id, 0])),
+  const [amounts, setAmounts] = useState<Record<string, number>>(
+    Object.fromEntries(activeBeans.map((b) => [String(b.id), 0])),
   );
   const [submitting, setSubmitting] = useState(false);
 
+  const getAmount = (beanId: number): number => amounts[String(beanId)] ?? 0;
+
   const setAmount = (beanId: number, value: number) => {
-    setAmounts((prev) => ({ ...prev, [beanId]: Math.max(0, value) }));
+    setAmounts((prev) => ({ ...prev, [String(beanId)]: Math.max(0, value) }));
   };
 
   const hasAny = Object.values(amounts).some((v) => v > 0);
@@ -60,21 +62,21 @@ export function ConsumptionModal({ beans, onClose }: ConsumptionModalProps) {
             <div className={styles.stepper}>
               <button
                 className={styles.stepperBtn}
-                onClick={() => setAmount(bean.id, (amounts[bean.id] ?? 0) - 1)}
+                onClick={() => setAmount(bean.id, getAmount(bean.id) - 1)}
               >
                 −
               </button>
               <input
                 className={styles.stepperInput}
                 type="number"
-                value={amounts[bean.id] ?? 0}
+                value={getAmount(bean.id)}
                 onChange={(e) => setAmount(bean.id, Number(e.target.value) || 0)}
                 min={0}
                 step="0.1"
               />
               <button
                 className={styles.stepperBtn}
-                onClick={() => setAmount(bean.id, (amounts[bean.id] ?? 0) + 1)}
+                onClick={() => setAmount(bean.id, getAmount(bean.id) + 1)}
               >
                 +
               </button>
