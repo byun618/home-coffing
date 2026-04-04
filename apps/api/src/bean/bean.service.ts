@@ -80,7 +80,12 @@ export class BeanService {
 
   async remove(beanId: number): Promise<void> {
     const bean = await this.findBean(beanId);
-    await this.em.removeAndFlush(bean);
+    const consumptions = await this.em.find(Consumption, { bean });
+    for (const c of consumptions) {
+      this.em.remove(c);
+    }
+    this.em.remove(bean);
+    await this.em.flush();
   }
 
   async buildBeanWithStats(bean: Bean): Promise<BeanWithStats> {

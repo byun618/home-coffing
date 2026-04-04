@@ -17,6 +17,8 @@ export async function api<T>(
     throw new Error(error.message || '요청에 실패했어요');
   }
 
+  if (response.status === 204) return undefined as never;
+
   const text = await response.text();
   if (!text) return undefined as never;
   return JSON.parse(text);
