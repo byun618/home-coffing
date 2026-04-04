@@ -57,20 +57,27 @@ export default function BeanDetailPage({
     e.preventDefault();
     setSubmitting(true);
     try {
+      const body: Record<string, unknown> = {
+        name,
+        totalAmount: Number(totalAmount),
+        orderedAt,
+        roastDate,
+        degassingDays: Number(degassingDays),
+        cupsPerDay: Number(cupsPerDay),
+        gramsPerCup: Number(gramsPerCup),
+      };
+      if (arrivedAt) {
+        body.arrivedAt = arrivedAt;
+      } else {
+        body.arrivedAt = null;
+      }
       await api(`/beans/${bean.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({
-          name,
-          totalAmount: Number(totalAmount),
-          orderedAt,
-          roastDate,
-          arrivedAt: arrivedAt || null,
-          degassingDays: Number(degassingDays),
-          cupsPerDay: Number(cupsPerDay),
-          gramsPerCup: Number(gramsPerCup),
-        }),
+        body: JSON.stringify(body),
       });
       router.push('/');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '저장에 실패했어요');
     } finally {
       setSubmitting(false);
     }

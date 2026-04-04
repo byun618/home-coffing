@@ -18,9 +18,8 @@ export class BeanUpdateDto {
   @IsOptional()
   roastDate?: string;
 
-  @IsDateString()
   @IsOptional()
-  arrivedAt?: string;
+  arrivedAt?: string | null;
 
   @IsNumber()
   @IsOptional()
