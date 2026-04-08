@@ -17,6 +17,7 @@
       "supportsTablet": false
     },
     "android": {
+      "package": "com.byun618.homecoffing",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F2EDE8"
@@ -36,6 +37,13 @@
     "experiments": {
       "autolinkingModuleResolution": true,
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e86d28f1-83fb-4912-8622-26f99d23a473"
+      }
+    },
+    "owner": "byun618"
   }
 }
