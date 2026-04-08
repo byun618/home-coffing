@@ -1,34 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ConsumptionCreateRequest,
+  ConsumptionListResponse,
   ConsumptionResult,
 } from "@home-coffing/shared-types";
 import { api } from "../api";
 import { beansKey } from "./beans";
 
-interface Consumption {
-  id: number;
-  beanId: number;
-  amount: number;
-  createdAt: string;
-  bean?: { name: string };
-}
-
 export const consumptionsKey = ["consumptions"] as const;
 export const consumptionsByBeanKey = (beanId: number) =>
   ["consumptions", { beanId }] as const;
 
-export function useConsumptions() {
+export function useConsumptions(limit = 20) {
   return useQuery({
-    queryKey: consumptionsKey,
-    queryFn: () => api<Consumption[]>("/consumptions"),
+    queryKey: [...consumptionsKey, { limit }],
+    queryFn: () =>
+      api<ConsumptionListResponse>(`/consumptions?limit=${limit}`),
   });
 }
 
 export function useConsumptionsByBean(beanId: number) {
   return useQuery({
     queryKey: consumptionsByBeanKey(beanId),
-    queryFn: () => api<Consumption[]>(`/consumptions?beanId=${beanId}`),
+    queryFn: () =>
+      api<ConsumptionListResponse>(`/consumptions?beanId=${beanId}`),
     enabled: Number.isFinite(beanId),
   });
 }
