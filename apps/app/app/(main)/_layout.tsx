@@ -45,6 +45,9 @@ export default function MainLayout() {
       />
       <Tabs.Screen name="beans/[id]" options={{ href: null }} />
       <Tabs.Screen name="records/[id]" options={{ href: null }} />
+      <Tabs.Screen name="invite-code" options={{ href: null }} />
+      <Tabs.Screen name="account" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
     </Tabs>
   );
 }
