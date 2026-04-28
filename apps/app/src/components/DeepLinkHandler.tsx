@@ -33,7 +33,7 @@ export function DeepLinkHandler() {
         const code = pendingCode.current;
         pendingCode.current = null;
         router.push({
-          pathname: "/(main)/invite-code",
+          pathname: "/invite-code",
           params: { code },
         });
       }

@@ -1,12 +1,14 @@
 import { X } from "lucide-react-native";
 import { ReactNode } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -25,13 +27,9 @@ interface Props {
 
 /**
  * RN Modal 기반 바텀시트 — Expo Go 호환.
- * mockup 기준:
- * - bg-overlay (#1A0F08CC) backdrop
- * - sheet bg-bg-primary, radius-sheet 상단만, padding [14, 0, 44, 0]
- * - handle bar 36x4 bg-tertiary radius 2 중앙
- * - head padding [4, 24] — title md(18/700) 또는 lg(22/700) + ✕
- * - body padding [0, 24]
- * - cta area padding [8, 24, 0, 24]
+ * - 키보드 회피: 외부 KeyboardAvoidingView (iOS=padding, Android=height)
+ * - 외부 영역 탭 시 키보드 닫기 + 시트 닫기
+ * - 시트 내부 빈 영역 탭 시 키보드만 닫기 (시트 유지)
  */
 export function BottomSheet({
   visible,
@@ -55,85 +53,103 @@ export function BottomSheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View className="flex-1 justify-end bg-bg-overlay">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1, justifyContent: "flex-end" }}
+      >
+        {/* backdrop — tap to close (also dismisses keyboard) */}
         <Pressable
-          className="absolute inset-0"
-          onPress={onClose}
-        />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="bg-bg-primary"
           style={{
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: "92%",
-            paddingTop: 14,
-            paddingBottom: cta ? 0 : 44,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
           }}
-        >
-          {/* handle bar 36x4 */}
-          <View className="items-center" style={{ paddingBottom: 4 }}>
-            <View
-              className="bg-bg-tertiary"
-              style={{ width: 36, height: 4, borderRadius: 2 }}
-            />
-          </View>
+          className="bg-bg-overlay"
+          onPress={() => {
+            Keyboard.dismiss();
+            onClose();
+          }}
+        />
 
-          {/* head */}
-          {title ? (
-            <View
-              className="flex-row items-center justify-between"
-              style={{ paddingVertical: 4, paddingHorizontal: 24 }}
-            >
-              <Text className={titleClass}>{title}</Text>
-              <Pressable
-                onPress={onClose}
-                className="w-9 h-9 items-center justify-center -mr-2"
+        {/* sheet content */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View
+            className="bg-bg-primary"
+            style={{
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              maxHeight: "92%",
+              paddingTop: 14,
+              paddingBottom: cta ? 0 : 44,
+            }}
+          >
+            {/* handle bar 36x4 */}
+            <View className="items-center" style={{ paddingBottom: 4 }}>
+              <View
+                className="bg-bg-tertiary"
+                style={{ width: 36, height: 4, borderRadius: 2 }}
+              />
+            </View>
+
+            {/* head */}
+            {title ? (
+              <View
+                className="flex-row items-center justify-between"
+                style={{ paddingVertical: 4, paddingHorizontal: 24 }}
               >
-                <X size={20} color="#7B6A5C" />
-              </Pressable>
-            </View>
-          ) : null}
+                <Text className={titleClass}>{title}</Text>
+                <Pressable
+                  onPress={onClose}
+                  className="w-9 h-9 items-center justify-center -mr-2"
+                >
+                  <X size={20} color="#7B6A5C" />
+                </Pressable>
+              </View>
+            ) : null}
 
-          {/* body */}
-          {scroll ? (
-            <ScrollView
-              style={{ flexGrow: 0 }}
-              contentContainerStyle={{
-                paddingHorizontal: 24,
-                paddingTop: 18,
-                paddingBottom: cta ? 16 : 0,
-              }}
-              keyboardShouldPersistTaps="handled"
-            >
-              {children}
-            </ScrollView>
-          ) : (
-            <View
-              style={{
-                paddingHorizontal: 24,
-                paddingTop: 18,
-                paddingBottom: cta ? 16 : 0,
-              }}
-            >
-              {children}
-            </View>
-          )}
+            {/* body */}
+            {scroll ? (
+              <ScrollView
+                style={{ flexGrow: 0 }}
+                contentContainerStyle={{
+                  paddingHorizontal: 24,
+                  paddingTop: 18,
+                  paddingBottom: cta ? 16 : 16,
+                }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {children}
+              </ScrollView>
+            ) : (
+              <View
+                style={{
+                  paddingHorizontal: 24,
+                  paddingTop: 18,
+                  paddingBottom: cta ? 16 : 0,
+                }}
+              >
+                {children}
+              </View>
+            )}
 
-          {/* CTA */}
-          {cta ? (
-            <View
-              style={{
-                paddingTop: 8,
-                paddingHorizontal: 24,
-                paddingBottom: 44,
-              }}
-            >
-              {cta}
-            </View>
-          ) : null}
-        </KeyboardAvoidingView>
-      </View>
+            {/* CTA */}
+            {cta ? (
+              <View
+                style={{
+                  paddingTop: 8,
+                  paddingHorizontal: 24,
+                  paddingBottom: 44,
+                }}
+              >
+                {cta}
+              </View>
+            ) : null}
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

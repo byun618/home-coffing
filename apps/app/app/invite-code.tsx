@@ -10,12 +10,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PrimaryButton } from "../../src/components/form/PrimaryButton";
-import { TextField } from "../../src/components/form/TextField";
-import { ApiError } from "../../src/lib/api";
-import { useAcceptInvitation } from "../../src/lib/queries/cafe";
-import { useAuthStore } from "../../src/lib/stores/auth-store";
-import { showToast } from "../../src/lib/stores/toast-store";
+import { PrimaryButton } from "../src/components/form/PrimaryButton";
+import { TextField } from "../src/components/form/TextField";
+import { ApiError } from "../src/lib/api";
+import { useAcceptInvitation } from "../src/lib/queries/cafe";
+import { useAuthStore } from "../src/lib/stores/auth-store";
+import { showToast } from "../src/lib/stores/toast-store";
 
 export default function InviteCodeScreen() {
   const router = useRouter();

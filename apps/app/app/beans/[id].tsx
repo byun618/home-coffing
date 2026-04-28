@@ -15,20 +15,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MemberAvatar } from "../../../src/components/MemberAvatar";
-import { BeanActionsSheet } from "../../../src/components/sheets/BeanActionsSheet";
-import { BeanFormSheet } from "../../../src/components/sheets/BeanFormSheet";
+import { MemberAvatar } from "../../src/components/MemberAvatar";
+import { BeanActionsSheet } from "../../src/components/sheets/BeanActionsSheet";
+import { BeanFormSheet } from "../../src/components/sheets/BeanFormSheet";
 import {
   formatDate,
   formatDays,
   formatGrams,
   ropLabel,
-} from "../../../src/lib/format";
-import { useBeanDetail, useUpdateBean } from "../../../src/lib/queries/beans";
-import { useRecordsList } from "../../../src/lib/queries/records";
-import { useAuthStore } from "../../../src/lib/stores/auth-store";
-import { showToast } from "../../../src/lib/stores/toast-store";
-import type { Record } from "../../../src/lib/types";
+} from "../../src/lib/format";
+import { useBeanDetail, useUpdateBean } from "../../src/lib/queries/beans";
+import { useRecordsList } from "../../src/lib/queries/records";
+import { useAuthStore } from "../../src/lib/stores/auth-store";
+import { showToast } from "../../src/lib/stores/toast-store";
+import type { Record } from "../../src/lib/types";
 
 interface RecordRowProps {
   record: Record;
@@ -311,7 +311,7 @@ export default function BeanDetailScreen() {
                         record={record}
                         currentUserId={currentUserId ?? null}
                         onPress={() =>
-                          router.push(`/(main)/records/${record.id}`)
+                          router.push(`/records/${record.id}`)
                         }
                       />
                     ))}

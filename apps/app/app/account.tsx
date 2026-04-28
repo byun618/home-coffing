@@ -4,14 +4,14 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ConfirmDialog } from "../../src/components/ConfirmDialog";
-import { MemberAvatar } from "../../src/components/MemberAvatar";
-import { DisplayNameSheet } from "../../src/components/sheets/DisplayNameSheet";
-import { ApiError } from "../../src/lib/api";
-import { useDeleteMe } from "../../src/lib/queries/me";
-import { useAuthStore } from "../../src/lib/stores/auth-store";
-import { showSuccess } from "../../src/lib/stores/alert-store";
-import { showToast } from "../../src/lib/stores/toast-store";
+import { ConfirmDialog } from "../src/components/ConfirmDialog";
+import { MemberAvatar } from "../src/components/MemberAvatar";
+import { DisplayNameSheet } from "../src/components/sheets/DisplayNameSheet";
+import { ApiError } from "../src/lib/api";
+import { useDeleteMe } from "../src/lib/queries/me";
+import { useAuthStore } from "../src/lib/stores/auth-store";
+import { showSuccess } from "../src/lib/stores/alert-store";
+import { showToast } from "../src/lib/stores/toast-store";
 
 export default function AccountScreen() {
   const router = useRouter();

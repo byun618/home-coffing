@@ -45,6 +45,7 @@ export const TextField = forwardRef<TextInput, Props>(
               minHeight: multiline ? 60 : 24,
               textAlignVertical: multiline ? "top" : "center",
             }}
+            {...rest}
             onFocus={(e) => {
               setFocused(true);
               rest.onFocus?.(e);
@@ -53,7 +54,6 @@ export const TextField = forwardRef<TextInput, Props>(
               setFocused(false);
               rest.onBlur?.(e);
             }}
-            {...rest}
           />
         </View>
         {hint ? (

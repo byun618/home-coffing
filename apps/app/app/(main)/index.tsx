@@ -83,7 +83,7 @@ export default function HomeScreen() {
             ) : null}
           </Pressable>
           <Pressable
-            onPress={() => router.push("/(main)/notifications")}
+            onPress={() => router.push("/notifications")}
             className="w-10 h-10 items-center justify-center"
           >
             <Bell size={22} color="#2A1F18" />
@@ -145,7 +145,7 @@ export default function HomeScreen() {
                   <BeanCard
                     key={bean.id}
                     bean={bean}
-                    onPress={() => router.push(`/(main)/beans/${bean.id}`)}
+                    onPress={() => router.push(`/beans/${bean.id}`)}
                   />
                 ))}
               </ScrollView>
@@ -184,7 +184,7 @@ export default function HomeScreen() {
                     key={record.id}
                     record={record}
                     currentUserId={user?.id ?? null}
-                    onPress={() => router.push(`/(main)/records/${record.id}`)}
+                    onPress={() => router.push(`/records/${record.id}`)}
                   />
                 ))}
               </View>

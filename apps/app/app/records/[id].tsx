@@ -15,19 +15,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BottomSheet } from "../../../src/components/BottomSheet";
-import { ConfirmDialog } from "../../../src/components/ConfirmDialog";
-import { MemberAvatar } from "../../../src/components/MemberAvatar";
-import { RecordEditSheet } from "../../../src/components/sheets/RecordEditSheet";
-import { useBeansList } from "../../../src/lib/queries/beans";
+import { BottomSheet } from "../../src/components/BottomSheet";
+import { ConfirmDialog } from "../../src/components/ConfirmDialog";
+import { MemberAvatar } from "../../src/components/MemberAvatar";
+import { RecordEditSheet } from "../../src/components/sheets/RecordEditSheet";
+import { useBeansList } from "../../src/lib/queries/beans";
 import {
   useDeleteRecord,
   useRecordDetail,
-} from "../../../src/lib/queries/records";
-import { showSuccess } from "../../../src/lib/stores/alert-store";
-import { useAuthStore } from "../../../src/lib/stores/auth-store";
-import { showToast } from "../../../src/lib/stores/toast-store";
-import { formatGrams } from "../../../src/lib/format";
+} from "../../src/lib/queries/records";
+import { showSuccess } from "../../src/lib/stores/alert-store";
+import { useAuthStore } from "../../src/lib/stores/auth-store";
+import { showToast } from "../../src/lib/stores/toast-store";
+import { formatGrams } from "../../src/lib/format";
 
 function brewedAtLabel(iso: string): string {
   const d = new Date(iso);
@@ -46,27 +46,6 @@ function brewedAtLabel(iso: string): string {
   if (isToday) return `오늘 ${time}`;
   if (isYesterday) return `어제 ${time}`;
   return `${d.getMonth() + 1}월 ${d.getDate()}일 ${time}`;
-}
-
-function brewingMethodLabel(method: string): string {
-  switch (method) {
-    case "v60":
-      return "V60";
-    case "switch":
-      return "스위치";
-    case "espresso":
-      return "에스프레소";
-    case "moka":
-      return "모카포트";
-    case "aeropress":
-      return "에어로프레스";
-    case "french_press":
-      return "프렌치프레스";
-    case "other":
-      return "기타";
-    default:
-      return method;
-  }
 }
 
 export default function RecordDetailScreen() {
@@ -299,60 +278,6 @@ export default function RecordDetailScreen() {
             </View>
           ) : null}
 
-          {/* Recipe */}
-          {record.recipe &&
-          (record.recipe.brewingMethod ||
-            record.recipe.waterTempCelsius !== undefined ||
-            record.recipe.iceGrams !== undefined ||
-            record.recipe.totalYieldGrams !== undefined ||
-            record.recipe.totalTimeSeconds !== undefined ||
-            record.recipe.extraNote) ? (
-            <View
-              className="bg-bg-secondary"
-              style={{ borderRadius: 16, padding: 18, gap: 12 }}
-            >
-              <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
-                레시피
-              </Text>
-              <View className="flex-row flex-wrap" style={{ gap: 16 }}>
-                {record.recipe.brewingMethod ? (
-                  <RecipeCell
-                    label="추출"
-                    value={brewingMethodLabel(record.recipe.brewingMethod)}
-                  />
-                ) : null}
-                {record.recipe.waterTempCelsius !== undefined ? (
-                  <RecipeCell
-                    label="물 온도"
-                    value={`${record.recipe.waterTempCelsius}°C`}
-                  />
-                ) : null}
-                {record.recipe.iceGrams !== undefined ? (
-                  <RecipeCell
-                    label="얼음"
-                    value={`${record.recipe.iceGrams}g`}
-                  />
-                ) : null}
-                {record.recipe.totalYieldGrams !== undefined ? (
-                  <RecipeCell
-                    label="추출량"
-                    value={`${record.recipe.totalYieldGrams}g`}
-                  />
-                ) : null}
-                {record.recipe.totalTimeSeconds !== undefined ? (
-                  <RecipeCell
-                    label="시간"
-                    value={`${record.recipe.totalTimeSeconds}초`}
-                  />
-                ) : null}
-              </View>
-              {record.recipe.extraNote ? (
-                <Text className="text-[13px] font-pretendard text-text-primary leading-5">
-                  {record.recipe.extraNote}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
         </View>
       </ScrollView>
 
@@ -413,15 +338,3 @@ export default function RecordDetailScreen() {
   );
 }
 
-function RecipeCell({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="gap-0.5">
-      <Text className="text-[10px] font-pretendard text-text-tertiary">
-        {label}
-      </Text>
-      <Text className="text-[13px] font-pretendard-semibold text-text-primary">
-        {value}
-      </Text>
-    </View>
-  );
-}

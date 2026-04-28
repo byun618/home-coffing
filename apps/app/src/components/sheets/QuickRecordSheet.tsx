@@ -19,13 +19,6 @@ import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { PrimaryButton } from "../form/PrimaryButton";
 import { RatingField } from "../form/RatingField";
-import {
-  emptyRecipeForm,
-  recipeFormDirty,
-  recipeFormToJson,
-  RecipeFields,
-  type RecipeFormState,
-} from "../form/RecipeFields";
 import { TextField } from "../form/TextField";
 
 interface Props {
@@ -45,8 +38,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
   const [memo, setMemo] = useState("");
   const [tasteText, setTasteText] = useState("");
   const [rating, setRating] = useState(0);
-  const [recipe, setRecipe] = useState<RecipeFormState>(emptyRecipeForm());
-  const [recipeOpen, setRecipeOpen] = useState(false);
   const [brewedAt, setBrewedAt] = useState<Date>(new Date());
   const [timeMode, setTimeMode] = useState<"now" | "custom">("now");
   const [showPicker, setShowPicker] = useState(false);
@@ -65,8 +56,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
       setMemo("");
       setTasteText("");
       setRating(0);
-      setRecipe(emptyRecipeForm());
-      setRecipeOpen(false);
       setBrewedAt(new Date());
       setTimeMode("now");
       setShowPicker(false);
@@ -99,7 +88,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
     memo.trim().length > 0 ||
     tasteText.trim().length > 0 ||
     rating > 0 ||
-    recipeFormDirty(recipe, emptyRecipeForm()) ||
     timeMode === "custom";
   const close = useDirtyClose(isDirty, onClose);
 
@@ -126,7 +114,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
                 ...(rating > 0 ? { rating } : {}),
               }
             : undefined,
-        recipe: recipeFormToJson(recipe),
       });
       showSuccess("저장 완료", "오늘의 한 잔이 기록됐어요");
       onClose();
@@ -333,25 +320,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           placeholder="예) 베리, 다크초콜릿, 깊은 단맛"
           multiline
         />
-
-        <View className="gap-2">
-          <Pressable
-            onPress={() => setRecipeOpen((v) => !v)}
-            className="flex-row items-center justify-between py-2"
-          >
-            <Text className="text-[13px] font-pretendard-medium text-text-secondary">
-              레시피 (선택)
-            </Text>
-            <ChevronDown
-              size={16}
-              color="#7B6A5C"
-              style={{ transform: [{ rotate: recipeOpen ? "180deg" : "0deg" }] }}
-            />
-          </Pressable>
-          {recipeOpen ? (
-            <RecipeFields value={recipe} onChange={setRecipe} />
-          ) : null}
-        </View>
 
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">

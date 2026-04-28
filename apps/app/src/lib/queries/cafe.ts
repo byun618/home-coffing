@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "../api";
+import { useAuthStore } from "../stores/auth-store";
 import type { Cafe, Invitation } from "../types";
 
 export const cafeKeys = {
@@ -20,9 +21,10 @@ export function useUpdateCafeName(cafeId: number | null) {
   return useMutation({
     mutationFn: (name: string) =>
       api.patch<Cafe>(`/cafes/${cafeId}`, { name }),
-    onSuccess: (cafe) => {
+    onSuccess: async (cafe) => {
       queryClient.invalidateQueries({ queryKey: cafeKeys.detail(cafe.id) });
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      // user.memberships에 cafeName이 들어있어 auth-store도 갱신해야 Home/더보기에 반영됨
+      await useAuthStore.getState().refreshMe();
     },
   });
 }

@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { formatRelative } from "../../src/lib/format";
-import { useNotifications } from "../../src/lib/queries/notifications";
+import { formatRelative } from "../src/lib/format";
+import { useNotifications } from "../src/lib/queries/notifications";
 
 export default function NotificationsScreen() {
   const router = useRouter();

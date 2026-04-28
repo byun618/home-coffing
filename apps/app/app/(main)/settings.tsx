@@ -139,17 +139,17 @@ export default function SettingsScreen() {
             <SettingRow
               icon={Bell}
               label="알림"
-              onPress={() => router.push("/(main)/notifications")}
+              onPress={() => router.push("/notifications")}
             />
             <SettingRow
               icon={UserIcon}
               label="계정 관리"
-              onPress={() => router.push("/(main)/account")}
+              onPress={() => router.push("/account")}
             />
             <SettingRow
               icon={LinkIcon}
               label="초대 코드 입력"
-              onPress={() => router.push("/(main)/invite-code")}
+              onPress={() => router.push("/invite-code")}
             />
             <SettingRow
               icon={LogOut}

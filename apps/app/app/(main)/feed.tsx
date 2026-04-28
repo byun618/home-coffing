@@ -195,7 +195,7 @@ export default function FeedScreen() {
                       record={record}
                       currentUserId={user?.id ?? null}
                       onPress={() =>
-                        router.push(`/(main)/records/${record.id}`)
+                        router.push(`/records/${record.id}`)
                       }
                     />
                   ))}

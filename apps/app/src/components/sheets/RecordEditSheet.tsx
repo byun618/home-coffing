@@ -17,13 +17,6 @@ import { ConfirmDialog } from "../ConfirmDialog";
 import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
 import { RatingField } from "../form/RatingField";
-import {
-  recipeFormDirty,
-  recipeFormFromJson,
-  recipeFormToJson,
-  RecipeFields,
-  type RecipeFormState,
-} from "../form/RecipeFields";
 import { TextField } from "../form/TextField";
 
 interface Props {
@@ -62,14 +55,11 @@ export function RecordEditSheet({
   onDelete,
 }: Props) {
   const baselineEntries = entriesFromRecord(record);
-  const baselineRecipe = recipeFormFromJson(record.recipe);
 
   const [entries, setEntries] = useState<BeanEntry[]>(baselineEntries);
   const [memo, setMemo] = useState(record.memo ?? "");
   const [tasteText, setTasteText] = useState(record.tasteNote?.text ?? "");
   const [rating, setRating] = useState(record.tasteNote?.rating ?? 0);
-  const [recipe, setRecipe] = useState<RecipeFormState>(baselineRecipe);
-  const [recipeOpen, setRecipeOpen] = useState(record.recipe !== null);
   const [brewedAt, setBrewedAt] = useState<Date>(new Date(record.brewedAt));
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,8 +73,6 @@ export function RecordEditSheet({
       setMemo(record.memo ?? "");
       setTasteText(record.tasteNote?.text ?? "");
       setRating(record.tasteNote?.rating ?? 0);
-      setRecipe(recipeFormFromJson(record.recipe));
-      setRecipeOpen(record.recipe !== null);
       setBrewedAt(new Date(record.brewedAt));
       setShowPicker(false);
       setError(null);
@@ -139,7 +127,6 @@ export function RecordEditSheet({
     memo !== (record.memo ?? "") ||
     tasteText !== (record.tasteNote?.text ?? "") ||
     rating !== (record.tasteNote?.rating ?? 0) ||
-    recipeFormDirty(recipe, baselineRecipe) ||
     new Date(record.brewedAt).getTime() !== brewedAt.getTime();
   const close = useDirtyClose(isDirty, onClose);
 
@@ -164,7 +151,6 @@ export function RecordEditSheet({
               ...(rating > 0 ? { rating } : {}),
             }
           : undefined,
-      recipe: recipeFormToJson(recipe),
     };
     if (new Date(record.brewedAt).getTime() !== brewedAt.getTime()) {
       input.brewedAt = brewedAt.toISOString();
@@ -284,27 +270,6 @@ export function RecordEditSheet({
           placeholder="예) 베리, 다크초콜릿"
           multiline
         />
-
-        <View className="gap-2">
-          <Pressable
-            onPress={() => setRecipeOpen((v) => !v)}
-            className="flex-row items-center justify-between py-2"
-          >
-            <Text className="text-[13px] font-pretendard-medium text-text-secondary">
-              레시피
-            </Text>
-            <ChevronDown
-              size={16}
-              color="#7B6A5C"
-              style={{
-                transform: [{ rotate: recipeOpen ? "180deg" : "0deg" }],
-              }}
-            />
-          </Pressable>
-          {recipeOpen ? (
-            <RecipeFields value={recipe} onChange={setRecipe} />
-          ) : null}
-        </View>
 
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">

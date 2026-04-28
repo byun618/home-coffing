@@ -6,10 +6,11 @@ import { setOnUnauthorized } from "../lib/api";
 import { useAuthStore } from "../lib/stores/auth-store";
 
 /**
- * 모든 라우트 진입 전 인증 상태 게이트.
+ * 인증 상태 게이트.
  * - loading: 스피너
- * - guest: (public)/login으로 redirect (단, 이미 (public) 안이면 통과)
- * - authenticated: (main)으로 redirect (단, 이미 (main) 안이면 통과)
+ * - guest가 비-public 진입 → /(public)/login redirect
+ * - authenticated가 (public) 진입 → /(main) redirect (post-login)
+ * - 그 외(authenticated + 디테일 화면 등)는 그대로 통과
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const segments = useSegments();
@@ -34,12 +35,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   const top = segments[0] as string | undefined;
   const inPublic = top === "(public)";
-  const inMain = top === "(main)";
 
   if (status === "guest" && !inPublic) {
     return <Redirect href="/(public)/login" />;
   }
-  if (status === "authenticated" && !inMain) {
+  if (status === "authenticated" && inPublic) {
     return <Redirect href="/(main)" />;
   }
   return <>{children}</>;
