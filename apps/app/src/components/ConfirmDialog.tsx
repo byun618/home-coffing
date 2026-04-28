@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react-native";
 import { Modal, Pressable, Text, View } from "react-native";
 
 interface Props {
@@ -6,13 +7,17 @@ interface Props {
   message?: string;
   confirmLabel: string;
   cancelLabel?: string;
+  /** danger=true → 우측 confirm 버튼 빨강, false → accent */
   danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
 /**
- * S16a/b/c 패턴 — 단순 RN Modal 기반 컨펌 (자동 dismiss 없음).
+ * Variant B — Confirm Alert (component-library §1)
+ * 318w · padding [28,24,20,24] · radius-2xl
+ * 56x56 round icon (bg-secondary) + ⚠ in $danger
+ * dual button: Cancel(bg-secondary, text-primary 15/600) + Confirm(danger or accent, text-on-dark 15/700)
  */
 export function ConfirmDialog({
   visible,
@@ -33,40 +38,64 @@ export function ConfirmDialog({
       statusBarTranslucent
     >
       <Pressable
-        className="flex-1 bg-black/40 items-center justify-center px-8"
+        className="flex-1 bg-bg-overlay items-center justify-center px-6"
         onPress={onCancel}
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="bg-bg-secondary rounded-sheet w-full p-5 gap-4"
+          className="bg-bg-primary items-center"
+          style={{
+            width: 318,
+            borderRadius: 18,
+            paddingTop: 28,
+            paddingHorizontal: 24,
+            paddingBottom: 20,
+            gap: 16,
+          }}
         >
-          <View className="gap-1.5">
-            <Text className="text-[17px] font-pretendard-semibold text-text-primary">
+          <View
+            className="bg-bg-secondary items-center justify-center"
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+            }}
+          >
+            <AlertTriangle size={28} color="#B55C3E" strokeWidth={2.5} />
+          </View>
+
+          <View className="items-center" style={{ gap: 8 }}>
+            <Text className="text-[17px] font-pretendard-bold text-text-primary text-center">
               {title}
             </Text>
             {message ? (
-              <Text className="text-[14px] font-pretendard text-text-secondary leading-5">
+              <Text
+                className="text-[13px] font-pretendard text-text-secondary text-center"
+                style={{ lineHeight: 19, maxWidth: 270 }}
+              >
                 {message}
               </Text>
             ) : null}
           </View>
 
-          <View className="flex-row gap-2 mt-1">
+          <View className="flex-row w-full" style={{ gap: 8, marginTop: 8 }}>
             <Pressable
               onPress={onCancel}
-              className="flex-1 h-12 items-center justify-center rounded-lg bg-accent-cream active:opacity-80"
+              className="flex-1 items-center justify-center rounded-pill bg-bg-secondary active:opacity-80"
+              style={{ height: 50 }}
             >
-              <Text className="text-[15px] font-pretendard-medium text-text-primary">
+              <Text className="text-[15px] font-pretendard-semibold text-text-primary">
                 {cancelLabel}
               </Text>
             </Pressable>
             <Pressable
               onPress={onConfirm}
-              className={`flex-1 h-12 items-center justify-center rounded-lg active:opacity-80 ${
+              className={`flex-1 items-center justify-center rounded-pill active:opacity-80 ${
                 danger ? "bg-danger" : "bg-accent"
               }`}
+              style={{ height: 50 }}
             >
-              <Text className="text-[15px] font-pretendard-semibold text-text-on-dark">
+              <Text className="text-[15px] font-pretendard-bold text-text-on-dark">
                 {confirmLabel}
               </Text>
             </Pressable>

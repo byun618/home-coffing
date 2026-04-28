@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AlertSuccessDialog } from "../src/components/AlertSuccessDialog";
 import { AuthGate } from "../src/components/AuthGate";
 import { DeepLinkHandler } from "../src/components/DeepLinkHandler";
 import { ToastViewport } from "../src/components/Toast";
@@ -43,6 +44,7 @@ export default function RootLayout() {
             <Slot />
           </AuthGate>
           <DeepLinkHandler />
+          <AlertSuccessDialog />
           <ToastViewport />
         </QueryClientProvider>
       </SafeAreaProvider>

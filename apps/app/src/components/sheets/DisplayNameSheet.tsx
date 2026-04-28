@@ -4,7 +4,7 @@ import { Text, View } from "react-native";
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import { useUpdateMe } from "../../lib/queries/me";
-import { showToast } from "../../lib/stores/toast-store";
+import { showSuccess } from "../../lib/stores/alert-store";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { PrimaryButton } from "../form/PrimaryButton";
@@ -39,7 +39,7 @@ export function DisplayNameSheet({ visible, onClose, current }: Props) {
     setError(null);
     try {
       await updateMe.mutateAsync({ displayName: trimmed });
-      showToast("수정 완료");
+      showSuccess("수정 완료", "닉네임을 변경했어요");
       onClose();
     } catch (err) {
       setError(err instanceof ApiError ? err.body.message : "수정에 실패했어요");

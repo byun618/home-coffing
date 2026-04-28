@@ -9,7 +9,7 @@ import {
   type CreateBeanInput,
   type UpdateBeanInput,
 } from "../../lib/queries/beans";
-import { showToast } from "../../lib/stores/toast-store";
+import { showSuccess } from "../../lib/stores/alert-store";
 import type { Bean } from "../../lib/types";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
@@ -123,7 +123,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
       };
       try {
         await createMutation.mutateAsync(input);
-        showToast("등록 완료");
+        showSuccess("등록 완료", "새 원두가 등록됐어요");
         onClose();
       } catch (err) {
         setError(err instanceof ApiError ? err.body.message : "등록에 실패했어요");
@@ -155,7 +155,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
 
       try {
         await updateMutation.mutateAsync(input);
-        showToast("수정 완료");
+        showSuccess("수정 완료", "원두 정보를 수정했어요");
         onClose();
       } catch (err) {
         setError(err instanceof ApiError ? err.body.message : "수정에 실패했어요");

@@ -9,7 +9,7 @@ import {
   useUpdateRecord,
   type UpdateRecordInput,
 } from "../../lib/queries/records";
-import { showToast } from "../../lib/stores/toast-store";
+import { showSuccess } from "../../lib/stores/alert-store";
 import type { Bean, Record as RecordItem } from "../../lib/types";
 import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
@@ -171,7 +171,7 @@ export function RecordEditSheet({
     }
     try {
       await updateMutation.mutateAsync(input);
-      showToast("수정 완료");
+      showSuccess("수정 완료", "기록을 수정했어요");
       onClose();
     } catch (err) {
       setError(err instanceof ApiError ? err.body.message : "수정에 실패했어요");

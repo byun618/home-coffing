@@ -24,6 +24,7 @@ import {
   useRecordDetail,
 } from "../../../src/lib/queries/records";
 import { useAuthStore } from "../../../src/lib/stores/auth-store";
+import { showSuccess } from "../../../src/lib/stores/alert-store";
 import { showToast } from "../../../src/lib/stores/toast-store";
 import { formatGrams, formatRelative } from "../../../src/lib/format";
 
@@ -57,7 +58,7 @@ export default function RecordDetailScreen() {
     setConfirmDelete(false);
     try {
       await deleteMutation.mutateAsync(record.id);
-      showToast("삭제 완료");
+      showSuccess("삭제 완료", "기록이 삭제됐어요");
       router.back();
     } catch {
       showToast("삭제에 실패했어요", "error");

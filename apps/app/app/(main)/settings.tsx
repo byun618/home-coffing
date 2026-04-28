@@ -1,54 +1,23 @@
 import { useRouter } from "expo-router";
 import {
-  ArrowLeftRight,
   Bell,
   ChevronRight,
-  Coffee,
   Link as LinkIcon,
   LogOut,
-  UserCircle,
+  Settings as SettingsIcon,
+  User as UserIcon,
 } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { MemberAvatar } from "../../src/components/MemberAvatar";
+import { SettingGroup, SettingRow } from "../../src/components/SettingRow";
 import { CafeSettingsSheet } from "../../src/components/sheets/CafeSettingsSheet";
 import { CafeSwitcherSheet } from "../../src/components/sheets/CafeSwitcherSheet";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 
-interface RowProps {
-  icon: React.ReactNode;
-  label: string;
-  hint?: string;
-  onPress: () => void;
-  danger?: boolean;
-}
-
-function Row({ icon, label, hint, onPress, danger }: RowProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 active:opacity-80 border border-divider"
-    >
-      {icon}
-      <View className="flex-1">
-        <Text
-          className={`text-[15px] font-pretendard-medium ${
-            danger ? "text-danger" : "text-text-primary"
-          }`}
-        >
-          {label}
-        </Text>
-        {hint ? (
-          <Text className="text-[11px] font-pretendard text-text-tertiary mt-0.5">
-            {hint}
-          </Text>
-        ) : null}
-      </View>
-      <ChevronRight size={16} color="#A89A8C" />
-    </Pressable>
-  );
-}
+const APP_VERSION = "0.3.0";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -60,66 +29,144 @@ export default function SettingsScreen() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const cafe = user?.memberships.find((m) => m.cafeId === activeCafeId);
-  const hasMultipleCafes = (user?.memberships.length ?? 0) > 1;
+  const memberships = user?.memberships ?? [];
+  const hasMultipleCafes = memberships.length > 1;
+  const initial = user?.displayName?.charAt(0) ?? user?.email.charAt(0) ?? "?";
+  const displayName =
+    user?.displayName ?? user?.email.split("@")[0] ?? "사용자";
 
   return (
     <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
-      <View className="px-5 pt-2 pb-4">
-        <Text className="text-[24px] font-pretendard-bold text-text-primary">
-          더보기
-        </Text>
-      </View>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 140 }}
+      >
+        {/* Nav */}
+        <View
+          className="flex-row items-center"
+          style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 4 }}
+        >
+          <Text className="text-[18px] font-pretendard-semibold text-text-primary">
+            더보기
+          </Text>
+        </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }}>
-        <View className="px-5 gap-3">
-          <Row
-            icon={<Coffee size={20} color="#3A2419" />}
-            label={cafe?.cafeName ?? "홈카페"}
-            hint={cafe?.role === "admin" ? "호스트" : "멤버"}
+        {/* Profile */}
+        <View
+          className="flex-row items-center"
+          style={{ gap: 16, paddingVertical: 20, paddingHorizontal: 24 }}
+        >
+          <MemberAvatar letter={initial} variant="self" size={56} />
+          <View className="gap-1 flex-1">
+            <Text
+              className="text-[18px] font-pretendard-bold text-text-primary"
+              numberOfLines={1}
+            >
+              {displayName}
+            </Text>
+            <Text
+              className="text-[13px] font-pretendard text-text-secondary"
+              numberOfLines={1}
+            >
+              {user?.email ?? ""}
+            </Text>
+          </View>
+        </View>
+
+        {/* 홈카페 섹션 */}
+        <View
+          className="gap-2"
+          style={{ paddingTop: 12, paddingHorizontal: 24 }}
+        >
+          <Text className="text-[12px] font-pretendard-semibold text-text-tertiary">
+            홈카페
+          </Text>
+          <Pressable
             onPress={() => setCafeSheetOpen(true)}
-          />
+            className="bg-bg-secondary active:opacity-80"
+            style={{ borderRadius: 16, padding: 18, gap: 14 }}
+          >
+            <View className="flex-row items-center justify-between">
+              <View className="gap-1 flex-1">
+                <Text
+                  className="text-[16px] font-pretendard-bold text-text-primary"
+                  numberOfLines={1}
+                >
+                  {cafe?.cafeName ?? "홈카페"}
+                </Text>
+                <Text className="text-[13px] font-pretendard text-text-secondary">
+                  {cafe?.role === "admin" ? "호스트" : "멤버"}
+                </Text>
+              </View>
+              <SettingsIcon size={18} color="#7B6A5C" />
+            </View>
+            <View className="flex-row" style={{ marginLeft: -2 }}>
+              <View
+                style={{
+                  borderRadius: 16,
+                  borderWidth: 2,
+                  borderColor: "#F5EFE7",
+                }}
+              >
+                <MemberAvatar letter={initial} variant="self" size={32} />
+              </View>
+            </View>
+          </Pressable>
 
           {hasMultipleCafes ? (
-            <Row
-              icon={<ArrowLeftRight size={20} color="#3A2419" />}
-              label="홈카페 전환"
-              hint={`${user?.memberships.length}개 가입`}
-              onPress={() => setSwitcherOpen(true)}
-            />
-          ) : null}
-
-          <Row
-            icon={<UserCircle size={20} color="#3A2419" />}
-            label="계정 관리"
-            hint={user?.email}
-            onPress={() => router.push("/(main)/account")}
-          />
-
-          <Row
-            icon={<Bell size={20} color="#3A2419" />}
-            label="알림"
-            onPress={() => router.push("/(main)/notifications")}
-          />
-
-          <Row
-            icon={<LinkIcon size={20} color="#3A2419" />}
-            label="초대 코드 입력"
-            hint="다른 홈카페에 합류"
-            onPress={() => router.push("/(main)/invite-code")}
-          />
-
-          <View className="mt-2">
             <Pressable
-              onPress={() => logout()}
-              className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 active:opacity-80 border border-divider"
+              onPress={() => setSwitcherOpen(true)}
+              className="flex-row items-center justify-between active:opacity-80"
+              style={{ paddingVertical: 12, paddingHorizontal: 4 }}
             >
-              <LogOut size={20} color="#B55C3E" />
-              <Text className="text-[15px] font-pretendard-medium text-danger flex-1">
-                로그아웃
+              <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+                다른 홈카페로 전환 ({memberships.length}개 가입)
               </Text>
               <ChevronRight size={16} color="#A89A8C" />
             </Pressable>
-          </View>
+          ) : null}
+        </View>
+
+        {/* 설정 섹션 */}
+        <View
+          className="gap-2"
+          style={{ paddingTop: 20, paddingHorizontal: 24 }}
+        >
+          <Text className="text-[12px] font-pretendard-semibold text-text-tertiary">
+            설정
+          </Text>
+          <SettingGroup>
+            <SettingRow
+              icon={Bell}
+              label="알림"
+              onPress={() => router.push("/(main)/notifications")}
+            />
+            <SettingRow
+              icon={UserIcon}
+              label="계정 관리"
+              onPress={() => router.push("/(main)/account")}
+            />
+            <SettingRow
+              icon={LinkIcon}
+              label="초대 코드 입력"
+              onPress={() => router.push("/(main)/invite-code")}
+            />
+            <SettingRow
+              icon={LogOut}
+              label="로그아웃"
+              onPress={() => logout()}
+              danger
+            />
+          </SettingGroup>
+        </View>
+
+        {/* 버전 footer */}
+        <View
+          style={{ paddingTop: 24, paddingHorizontal: 24, alignItems: "center" }}
+        >
+          <Text className="text-[12px] font-pretendard text-text-tertiary">
+            홈 커핑 v{APP_VERSION}
+          </Text>
         </View>
       </ScrollView>
 
@@ -130,10 +177,7 @@ export default function SettingsScreen() {
           cafeId={activeCafeId}
           currentUserId={user.id}
           onLeftCafe={() => {
-            // 본인의 다른 카페가 있으면 첫 번째로 전환, 없으면 logout (cafe 자체 삭제)
-            const other = user.memberships.find(
-              (m) => m.cafeId !== activeCafeId,
-            );
+            const other = memberships.find((m) => m.cafeId !== activeCafeId);
             if (other) {
               useAuthStore.getState().setActiveCafe(other.cafeId);
               useAuthStore.getState().refreshMe();

@@ -6,7 +6,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import { useCreateRecord } from "../../lib/queries/records";
-import { showToast } from "../../lib/stores/toast-store";
+import { showSuccess } from "../../lib/stores/alert-store";
 import type { Bean } from "../../lib/types";
 import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
@@ -123,7 +123,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
             : undefined,
         recipe: recipeFormToJson(recipe),
       });
-      showToast("기록 저장 완료");
+      showSuccess("저장 완료", "오늘의 한 잔이 기록됐어요");
       onClose();
     } catch (err) {
       setError(err instanceof ApiError ? err.body.message : "저장에 실패했어요");
