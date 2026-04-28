@@ -1,22 +1,28 @@
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { mikroOrmConfig } from './mikro-orm.config';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 import { CafeModule } from './cafe/cafe.module';
+import { InvitationModule } from './invitation/invitation.module';
 import { BeanModule } from './bean/bean.module';
-import { ConsumptionModule } from './consumption/consumption.module';
-import { PushModule } from './push/push.module';
-import { SchedulerModule } from './scheduler/scheduler.module';
+import { RecordModule } from './record/record.module';
+import { DeviceModule } from './device/device.module';
+import { NotificationModule } from './notification/notification.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
     MikroOrmModule.forRoot(mikroOrmConfig),
-    ScheduleModule.forRoot(),
+    EventModule,
+    AuthModule,
+    UserModule,
     CafeModule,
+    InvitationModule,
     BeanModule,
-    ConsumptionModule,
-    PushModule,
-    SchedulerModule,
+    RecordModule,
+    DeviceModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}

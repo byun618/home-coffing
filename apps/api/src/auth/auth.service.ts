@@ -24,11 +24,26 @@ import {
   SignupDto,
 } from './dto';
 
-const ACCESS_TTL = process.env.JWT_ACCESS_TTL || '15m';
-const REFRESH_TTL_DAYS = (() => {
-  const raw = process.env.JWT_REFRESH_TTL || '30d';
-  return Number(raw.replace(/d$/i, '')) || 30;
-})();
+function parseTtlSeconds(raw: string, fallbackSeconds: number): number {
+  const match = raw.match(/^(\d+)(s|m|h|d)?$/i);
+  if (!match) return fallbackSeconds;
+  const n = Number(match[1]);
+  const unit = (match[2] ?? 's').toLowerCase();
+  const factor =
+    unit === 's' ? 1 : unit === 'm' ? 60 : unit === 'h' ? 3600 : 86400;
+  return n * factor;
+}
+
+const ACCESS_TTL_SEC = parseTtlSeconds(
+  process.env.JWT_ACCESS_TTL ?? '15m',
+  15 * 60,
+);
+const REFRESH_TTL_DAYS = Math.max(
+  1,
+  Math.round(
+    parseTtlSeconds(process.env.JWT_REFRESH_TTL ?? '30d', 30 * 86400) / 86400,
+  ),
+);
 
 @Injectable()
 export class AuthService {
@@ -120,7 +135,7 @@ export class AuthService {
       { sub: stored.user.id, email: stored.user.email } satisfies JwtPayload,
       {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: ACCESS_TTL,
+        expiresIn: ACCESS_TTL_SEC,
       },
     );
 
@@ -152,7 +167,7 @@ export class AuthService {
       { sub: user.id, email: user.email } satisfies JwtPayload,
       {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: ACCESS_TTL,
+        expiresIn: ACCESS_TTL_SEC,
       },
     );
 
