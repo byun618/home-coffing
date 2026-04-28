@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -13,9 +14,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BeanCard } from "../../src/components/BeanCard";
 import { FAB } from "../../src/components/FAB";
 import { RecordRow } from "../../src/components/RecordRow";
+import { BeanFormSheet } from "../../src/components/sheets/BeanFormSheet";
+import { QuickRecordSheet } from "../../src/components/sheets/QuickRecordSheet";
 import { useBeansList } from "../../src/lib/queries/beans";
 import { useRecordsList } from "../../src/lib/queries/records";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
+import { showToast } from "../../src/lib/stores/toast-store";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -25,15 +29,28 @@ export default function HomeScreen() {
   const beansQuery = useBeansList(activeCafeId);
   const recordsQuery = useRecordsList(activeCafeId, { limit: 5 });
 
+  const [addBeanOpen, setAddBeanOpen] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+
   const cafeName =
     user?.memberships.find((m) => m.cafeId === activeCafeId)?.cafeName ??
     "내 홈카페";
 
   const isRefreshing = beansQuery.isFetching && !beansQuery.isLoading;
+  const hasActiveBeans = (beansQuery.data ?? []).length > 0;
 
   function onRefresh() {
     beansQuery.refetch();
     recordsQuery.refetch();
+  }
+
+  function onPressFab() {
+    if (!hasActiveBeans) {
+      showToast("원두를 먼저 등록해주세요", "error");
+      setAddBeanOpen(true);
+      return;
+    }
+    setRecordOpen(true);
   }
 
   return (
@@ -60,9 +77,7 @@ export default function HomeScreen() {
               활성 원두
             </Text>
             <Pressable
-              onPress={() => {
-                /* TODO: open S04 add bean sheet */
-              }}
+              onPress={() => setAddBeanOpen(true)}
               className="flex-row items-center gap-1"
             >
               <Plus size={14} color="#5C3D2E" />
@@ -76,7 +91,7 @@ export default function HomeScreen() {
             <View className="py-8 items-center">
               <ActivityIndicator color="#5C3D2E" />
             </View>
-          ) : beansQuery.data && beansQuery.data.length === 0 ? (
+          ) : !hasActiveBeans ? (
             <View className="bg-surface rounded-card p-6 items-center gap-2 border border-border">
               <Text className="text-[14px] font-pretendard text-text-secondary">
                 활성 원두가 없어요
@@ -84,6 +99,14 @@ export default function HomeScreen() {
               <Text className="text-[12px] font-pretendard text-text-tertiary">
                 새 원두를 등록해서 기록을 시작해요
               </Text>
+              <Pressable
+                onPress={() => setAddBeanOpen(true)}
+                className="mt-2 px-4 py-2 rounded-pill bg-primary active:opacity-80"
+              >
+                <Text className="text-[13px] font-pretendard-medium text-surface">
+                  첫 원두 등록하기
+                </Text>
+              </Pressable>
             </View>
           ) : (
             <View className="gap-3">
@@ -128,10 +151,25 @@ export default function HomeScreen() {
       </ScrollView>
 
       <View className="absolute right-5 bottom-6">
-        <FAB onPress={() => { /* TODO: open S05 quick record sheet */ }}>
-          ☕
-        </FAB>
+        <FAB onPress={onPressFab}>☕</FAB>
       </View>
+
+      {activeCafeId !== null ? (
+        <BeanFormSheet
+          visible={addBeanOpen}
+          onClose={() => setAddBeanOpen(false)}
+          mode={{ kind: "create", cafeId: activeCafeId }}
+        />
+      ) : null}
+
+      {activeCafeId !== null ? (
+        <QuickRecordSheet
+          visible={recordOpen}
+          onClose={() => setRecordOpen(false)}
+          cafeId={activeCafeId}
+          beans={beansQuery.data ?? []}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

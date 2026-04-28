@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, MoreHorizontal } from "lucide-react-native";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ProgressBar } from "../../../src/components/ProgressBar";
 import { RecordRow } from "../../../src/components/RecordRow";
-import { useBeanDetail } from "../../../src/lib/queries/beans";
+import { BeanActionsSheet } from "../../../src/components/sheets/BeanActionsSheet";
+import { BeanFormSheet } from "../../../src/components/sheets/BeanFormSheet";
+import { useBeanDetail, useUpdateBean } from "../../../src/lib/queries/beans";
 import { useRecordsList } from "../../../src/lib/queries/records";
 import { useAuthStore } from "../../../src/lib/stores/auth-store";
+import { showToast } from "../../../src/lib/stores/toast-store";
 import {
   formatDate,
   formatDays,
@@ -27,11 +31,14 @@ export default function BeanDetailScreen() {
   const router = useRouter();
   const beanId = id ? Number(id) : null;
   const beanQuery = useBeanDetail(beanId);
+  const updateMutation = useUpdateBean(beanId);
   const activeCafeId = useAuthStore((state) => state.activeCafeId);
   const recordsQuery = useRecordsList(activeCafeId, {
     beanId: beanId ?? undefined,
     limit: 30,
   });
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   if (beanQuery.isLoading || !beanQuery.data) {
     return (
@@ -47,9 +54,24 @@ export default function BeanDetailScreen() {
     : 0;
   const tone = ropTone(bean.rop.status);
 
+  async function applyAction(input: {
+    finishedAt?: string;
+    finishedReason?: "consumed" | "discarded";
+    archivedAt?: string;
+  }, successMessage: string) {
+    try {
+      await updateMutation.mutateAsync(input);
+      showToast(successMessage);
+      setActionsOpen(false);
+      router.back();
+    } catch {
+      showToast("처리에 실패했어요", "error");
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      <View className="flex-row items-center px-3 py-2">
+      <View className="flex-row items-center justify-between px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
@@ -59,6 +81,12 @@ export default function BeanDetailScreen() {
         <Text className="text-[15px] font-pretendard-medium text-text-primary">
           원두 상세
         </Text>
+        <Pressable
+          onPress={() => setActionsOpen(true)}
+          className="w-10 h-10 items-center justify-center"
+        >
+          <MoreHorizontal size={22} color="#1A1A1A" />
+        </Pressable>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
@@ -152,6 +180,46 @@ export default function BeanDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <BeanActionsSheet
+        visible={actionsOpen}
+        onClose={() => setActionsOpen(false)}
+        bean={bean}
+        onEdit={() => {
+          setActionsOpen(false);
+          setEditOpen(true);
+        }}
+        onMarkConsumed={() =>
+          applyAction(
+            {
+              finishedAt: new Date().toISOString(),
+              finishedReason: "consumed",
+            },
+            "처리 완료",
+          )
+        }
+        onMarkDiscarded={() =>
+          applyAction(
+            {
+              finishedAt: new Date().toISOString(),
+              finishedReason: "discarded",
+            },
+            "처리 완료",
+          )
+        }
+        onArchive={() =>
+          applyAction(
+            { archivedAt: new Date().toISOString() },
+            "보관함으로 이동",
+          )
+        }
+      />
+
+      <BeanFormSheet
+        visible={editOpen}
+        onClose={() => setEditOpen(false)}
+        mode={{ kind: "edit", bean }}
+      />
     </SafeAreaView>
   );
 }
