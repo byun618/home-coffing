@@ -1,53 +1,79 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  BeanCreateRequest,
-  BeanUpdateRequest,
-  BeanWithStats,
-} from "@home-coffing/shared-types";
+
 import { api } from "../api";
+import type { Bean } from "../types";
 
-export const beansKey = ["beans"] as const;
-export const beanKey = (id: number) => ["beans", id] as const;
+export const beanKeys = {
+  all: ["beans"] as const,
+  list: (cafeId: number) => ["beans", "list", cafeId] as const,
+  detail: (beanId: number) => ["beans", "detail", beanId] as const,
+};
 
-export function useBeans() {
+export function useBeansList(cafeId: number | null) {
   return useQuery({
-    queryKey: beansKey,
-    queryFn: () => api<BeanWithStats[]>("/beans"),
+    queryKey: cafeId ? beanKeys.list(cafeId) : ["beans", "list", "none"],
+    enabled: cafeId !== null,
+    queryFn: () => api.get<Bean[]>(`/cafes/${cafeId}/beans`),
   });
 }
 
-export function useCreateBean() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (body: BeanCreateRequest) =>
-      api<BeanWithStats>("/beans", {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: beansKey }),
+export function useBeanDetail(beanId: number | null) {
+  return useQuery({
+    queryKey: beanId ? beanKeys.detail(beanId) : ["beans", "detail", "none"],
+    enabled: beanId !== null,
+    queryFn: () => api.get<Bean>(`/beans/${beanId}`),
   });
 }
 
-export function useUpdateBean(id: number) {
-  const qc = useQueryClient();
+export interface CreateBeanInput {
+  name: string;
+  origin?: string;
+  totalGrams: number;
+  orderedAt: string;
+  roastedOn: string;
+  arrivedAt?: string;
+  degassingDays?: number;
+  cupsPerDay?: number;
+  gramsPerCup?: number;
+}
+
+export function useCreateBean(cafeId: number | null) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: BeanUpdateRequest) =>
-      api<BeanWithStats>(`/beans/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(body),
-      }),
+    mutationFn: (input: CreateBeanInput) =>
+      api.post<Bean>(`/cafes/${cafeId}/beans`, input),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: beansKey });
-      qc.invalidateQueries({ queryKey: beanKey(id) });
+      if (cafeId !== null) {
+        queryClient.invalidateQueries({ queryKey: beanKeys.list(cafeId) });
+      }
     },
   });
 }
 
-export function useDeleteBean() {
-  const qc = useQueryClient();
+export interface UpdateBeanInput {
+  name?: string;
+  origin?: string;
+  totalGrams?: number;
+  orderedAt?: string;
+  roastedOn?: string;
+  arrivedAt?: string;
+  degassingDays?: number;
+  cupsPerDay?: number;
+  gramsPerCup?: number;
+  autoRopEnabled?: boolean;
+  finishedAt?: string;
+  finishedReason?: "consumed" | "discarded";
+  archivedAt?: string;
+}
+
+export function useUpdateBean(beanId: number | null) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) =>
-      api<void>(`/beans/${id}`, { method: "DELETE" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: beansKey }),
+    mutationFn: (input: UpdateBeanInput) =>
+      api.patch<Bean>(`/beans/${beanId}`, input),
+    onSuccess: (bean) => {
+      queryClient.invalidateQueries({ queryKey: beanKeys.list(bean.cafeId) });
+      queryClient.invalidateQueries({ queryKey: beanKeys.detail(bean.id) });
+    },
   });
 }
