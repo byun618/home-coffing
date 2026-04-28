@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
+import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import {
   useCreateBean,
   useUpdateBean,
@@ -11,6 +12,7 @@ import {
 import { showToast } from "../../lib/stores/toast-store";
 import type { Bean } from "../../lib/types";
 import { BottomSheet } from "../BottomSheet";
+import { ConfirmDialog } from "../ConfirmDialog";
 import { DateField } from "../form/DateField";
 import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
@@ -67,9 +69,9 @@ function formFromBean(bean: Bean): FormState {
 }
 
 export function BeanFormSheet({ visible, onClose, mode }: Props) {
-  const [form, setForm] = useState<FormState>(() =>
-    mode.kind === "edit" ? formFromBean(mode.bean) : emptyForm(),
-  );
+  const baseline =
+    mode.kind === "edit" ? formFromBean(mode.bean) : emptyForm();
+  const [form, setForm] = useState<FormState>(() => baseline);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,6 +80,11 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
       setError(null);
     }
   }, [visible, mode]);
+
+  const isDirty = (Object.keys(baseline) as Array<keyof FormState>).some(
+    (key) => form[key] !== baseline[key],
+  );
+  const close = useDirtyClose(isDirty, onClose);
 
   const createMutation = useCreateBean(
     mode.kind === "create" ? mode.cafeId : null,
@@ -159,7 +166,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
   return (
     <BottomSheet
       visible={visible}
-      onClose={onClose}
+      onClose={close.tryClose}
       title={mode.kind === "create" ? "원두 추가" : "원두 수정"}
     >
       <View className="gap-4 pt-2">
@@ -248,6 +255,16 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
           />
         </View>
       </View>
+
+      <ConfirmDialog
+        visible={close.confirming}
+        title="변경사항이 사라져요"
+        message="작성 중인 내용을 닫을까요?"
+        confirmLabel="닫기"
+        danger
+        onConfirm={close.accept}
+        onCancel={close.cancel}
+      />
     </BottomSheet>
   );
 }

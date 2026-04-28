@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
+import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import { useUpdateMe } from "../../lib/queries/me";
 import { showToast } from "../../lib/stores/toast-store";
 import { BottomSheet } from "../BottomSheet";
+import { ConfirmDialog } from "../ConfirmDialog";
 import { PrimaryButton } from "../form/PrimaryButton";
 import { TextField } from "../form/TextField";
 
@@ -28,8 +30,10 @@ export function DisplayNameSheet({ visible, onClose, current }: Props) {
 
   const trimmed = value.trim();
   const isLoading = updateMe.isPending;
+  const isDirty = trimmed !== (current ?? "").trim();
   const canSubmit =
-    trimmed.length > 0 && trimmed.length <= 80 && trimmed !== current && !isLoading;
+    trimmed.length > 0 && trimmed.length <= 80 && isDirty && !isLoading;
+  const close = useDirtyClose(isDirty, onClose);
 
   async function onSubmit() {
     setError(null);
@@ -43,7 +47,7 @@ export function DisplayNameSheet({ visible, onClose, current }: Props) {
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="닉네임 변경">
+    <BottomSheet visible={visible} onClose={close.tryClose} title="닉네임 변경">
       <View className="gap-4 pt-2 pb-2">
         <TextField
           label="닉네임"
@@ -70,6 +74,16 @@ export function DisplayNameSheet({ visible, onClose, current }: Props) {
           />
         </View>
       </View>
+
+      <ConfirmDialog
+        visible={close.confirming}
+        title="변경사항이 사라져요"
+        message="작성 중인 내용을 닫을까요?"
+        confirmLabel="닫기"
+        danger
+        onConfirm={close.accept}
+        onCancel={close.cancel}
+      />
     </BottomSheet>
   );
 }
