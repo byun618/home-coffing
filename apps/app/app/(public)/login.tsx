@@ -41,8 +41,17 @@ export default function LoginScreen() {
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View className="flex-1 px-6 pt-16 gap-6">
-          <View className="gap-2">
+        <View
+          className="flex-1"
+          style={{
+            paddingTop: 40,
+            paddingHorizontal: 24,
+            paddingBottom: 24,
+            gap: 32,
+          }}
+        >
+          {/* Hero */}
+          <View style={{ gap: 8 }}>
             <Text className="text-[28px] font-pretendard-bold text-text-primary">
               다시 만나서 반가워요 ☕
             </Text>
@@ -51,7 +60,8 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          <View className="gap-4 mt-4">
+          {/* Form */}
+          <View style={{ gap: 16 }}>
             <TextField
               label="이메일"
               value={email}
@@ -79,16 +89,23 @@ export default function LoginScreen() {
             </Text>
           ) : null}
 
-          <View className="gap-3 mt-2">
+          <View style={{ gap: 16, marginTop: "auto" }}>
             <PrimaryButton
               label={loading ? "로그인 중..." : "로그인"}
               onPress={onSubmit}
               disabled={!canSubmit}
+              variant="pill"
             />
             <Link href="/(public)/signup" asChild>
-              <Pressable className="items-center py-3">
+              <Pressable
+                className="items-center"
+                style={{ paddingVertical: 12 }}
+              >
                 <Text className="text-[14px] font-pretendard text-text-secondary">
-                  계정이 없나요? <Text className="text-accent">가입</Text>
+                  계정이 없나요?{" "}
+                  <Text className="text-accent font-pretendard-semibold">
+                    가입
+                  </Text>
                 </Text>
               </Pressable>
             </Link>

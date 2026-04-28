@@ -168,6 +168,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
       visible={visible}
       onClose={close.tryClose}
       title={mode.kind === "create" ? "원두 추가" : "원두 수정"}
+      titleSize="lg"
     >
       <View className="gap-4 pt-2">
         <TextField

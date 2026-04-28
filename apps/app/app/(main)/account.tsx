@@ -1,14 +1,16 @@
 import { useRouter } from "expo-router";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { ArrowLeft, ChevronRight, Lock } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ConfirmDialog } from "../../src/components/ConfirmDialog";
+import { MemberAvatar } from "../../src/components/MemberAvatar";
 import { DisplayNameSheet } from "../../src/components/sheets/DisplayNameSheet";
 import { ApiError } from "../../src/lib/api";
 import { useDeleteMe } from "../../src/lib/queries/me";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
+import { showSuccess } from "../../src/lib/stores/alert-store";
 import { showToast } from "../../src/lib/stores/toast-store";
 
 export default function AccountScreen() {
@@ -20,12 +22,16 @@ export default function AccountScreen() {
   const [nameOpen, setNameOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
+  const initial = user?.displayName?.charAt(0) ?? user?.email.charAt(0) ?? "?";
+  const displayName =
+    user?.displayName ?? user?.email.split("@")[0] ?? "사용자";
+
   async function onConfirmDelete() {
     setConfirmDelete(false);
     try {
       await deleteMe.mutateAsync();
+      showSuccess("탈퇴 완료", "그동안 함께해주셔서 감사해요");
       await logout();
-      showToast("탈퇴 처리됐어요");
     } catch (err) {
       const message =
         err instanceof ApiError ? err.body.message : "탈퇴에 실패했어요";
@@ -35,63 +41,89 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
-      <View className="flex-row items-center px-3 py-2">
+      {/* Nav */}
+      <View
+        className="flex-row items-center"
+        style={{ height: 52, paddingHorizontal: 16, gap: 10 }}
+      >
         <Pressable
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
+          className="w-10 h-10 items-center justify-center -ml-2"
         >
-          <ChevronLeft size={24} color="#2A1F18" />
+          <ArrowLeft size={22} color="#2A1F18" />
         </Pressable>
-        <Text className="text-[15px] font-pretendard-medium text-text-primary">
-          계정 관리
+        <Text className="text-[17px] font-pretendard-semibold text-text-primary">
+          계정 설정
         </Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="px-5 gap-3">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Profile */}
+        <View
+          className="items-center"
+          style={{ paddingTop: 20, paddingHorizontal: 24, paddingBottom: 12, gap: 16 }}
+        >
+          <MemberAvatar letter={initial} variant="self" size={80} />
+        </View>
+
+        {/* sec1 — 닉네임 / 이메일 */}
+        <View
+          style={{ paddingTop: 12, paddingHorizontal: 24, gap: 14 }}
+        >
           <Pressable
             onPress={() => setNameOpen(true)}
-            className="bg-bg-secondary rounded-xl p-4 flex-row items-center justify-between border border-divider active:opacity-80"
+            className="bg-bg-secondary flex-row items-center justify-between active:opacity-80"
+            style={{ borderRadius: 16, padding: 18 }}
           >
             <View className="flex-1">
               <Text className="text-[12px] font-pretendard text-text-secondary">
                 닉네임
               </Text>
-              <Text className="text-[15px] font-pretendard-semibold text-text-primary mt-0.5">
-                {user?.displayName ?? "설정 안 됨"}
+              <Text className="text-[16px] font-pretendard-bold text-text-primary mt-0.5">
+                {displayName}
               </Text>
             </View>
-            <View className="flex-row items-center gap-1">
-              <Text className="text-[12px] font-pretendard text-accent">
-                수정
-              </Text>
-              <ChevronRight size={16} color="#A89A8C" />
-            </View>
+            <Text className="text-[13px] font-pretendard-medium text-accent">
+              수정
+            </Text>
           </Pressable>
 
-          <View className="bg-bg-secondary rounded-xl p-4 gap-1 border border-divider">
-            <Text className="text-[12px] font-pretendard text-text-secondary">
-              이메일
-            </Text>
-            <Text className="text-[15px] font-pretendard-semibold text-text-primary">
-              {user?.email}
-            </Text>
-          </View>
-
-          <View className="mt-6 gap-2">
-            <Text className="text-[12px] font-pretendard text-danger">
-              위험 영역
-            </Text>
-            <Pressable
-              onPress={() => setConfirmDelete(true)}
-              className="bg-bg-secondary rounded-xl p-4 flex-row items-center justify-between border border-danger active:opacity-80"
-            >
-              <Text className="text-[15px] font-pretendard-medium text-danger">
-                회원 탈퇴
+          <View
+            className="bg-bg-tertiary flex-row items-center justify-between"
+            style={{ borderRadius: 16, padding: 18 }}
+          >
+            <View className="flex-1">
+              <Text className="text-[12px] font-pretendard text-text-secondary">
+                이메일
               </Text>
-              <ChevronRight size={16} color="#B55C3E" />
-            </Pressable>
+              <Text className="text-[15px] font-pretendard-semibold text-text-tertiary mt-0.5">
+                {user?.email ?? ""}
+              </Text>
+            </View>
+            <Lock size={16} color="#A89A8C" />
           </View>
+        </View>
+
+        {/* sec2 — 위험 영역 */}
+        <View
+          style={{ paddingTop: 24, paddingHorizontal: 24, gap: 8 }}
+        >
+          <Text className="text-[12px] font-pretendard-semibold text-danger">
+            위험 영역
+          </Text>
+          <Pressable
+            onPress={() => setConfirmDelete(true)}
+            className="bg-bg-secondary flex-row items-center justify-between active:opacity-80"
+            style={{ borderRadius: 16, paddingVertical: 18, paddingHorizontal: 18 }}
+          >
+            <Text className="text-[15px] font-pretendard-medium text-danger">
+              회원 탈퇴
+            </Text>
+            <ChevronRight size={18} color="#B55C3E" />
+          </Pressable>
         </View>
       </ScrollView>
 

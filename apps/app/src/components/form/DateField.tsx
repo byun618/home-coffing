@@ -21,16 +21,15 @@ export function DateField({ label, value, onChange, optional }: Props) {
   const parsed = value ? new Date(value) : new Date();
 
   return (
-    <View className="gap-1.5">
-      <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+    <View className="flex-1" style={{ gap: 8 }}>
+      <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
         {label}
-        {optional && (
-          <Text className="text-text-tertiary"> · 선택</Text>
-        )}
+        {optional && <Text className="text-text-tertiary"> · 선택</Text>}
       </Text>
       <Pressable
         onPress={() => setOpen(true)}
-        className="h-12 rounded-lg px-3 justify-center border border-divider"
+        className="bg-bg-secondary justify-center"
+        style={{ height: 56, borderRadius: 14, paddingHorizontal: 18 }}
       >
         <Text
           className={`text-[15px] font-pretendard ${value ? "text-text-primary" : "text-text-tertiary"}`}
@@ -52,7 +51,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
         />
       )}
       {optional && value !== "" && (
-        <Pressable onPress={() => onChange("")} className="self-start mt-1">
+        <Pressable onPress={() => onChange("")} className="self-start">
           <Text className="text-[11px] font-pretendard-medium text-text-secondary">
             지우기
           </Text>

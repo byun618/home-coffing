@@ -1,4 +1,5 @@
-import { ReactNode, useEffect } from "react";
+import { X } from "lucide-react-native";
+import { ReactNode } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -8,31 +9,43 @@ import {
   Text,
   View,
 } from "react-native";
-import { X } from "lucide-react-native";
 
 interface Props {
   visible: boolean;
   onClose: () => void;
   title?: string;
+  /** lg=22/700 (S04 등), md=18/700 (default) */
+  titleSize?: "md" | "lg";
   children: ReactNode;
   /** scroll content 자동 wrap 여부. false면 children 직접 렌더 */
   scroll?: boolean;
+  /** CTA 영역 (시트 하단 고정, padding [8, 24, 0, 24]) */
+  cta?: ReactNode;
 }
 
 /**
  * RN Modal 기반 바텀시트 — Expo Go 호환.
- * @gorhom/bottom-sheet의 gesture/snapPoints 복잡도를 피하고 단순 슬라이드만 제공.
+ * mockup 기준:
+ * - bg-overlay (#1A0F08CC) backdrop
+ * - sheet bg-bg-primary, radius-sheet 상단만, padding [14, 0, 44, 0]
+ * - handle bar 36x4 bg-tertiary radius 2 중앙
+ * - head padding [4, 24] — title md(18/700) 또는 lg(22/700) + ✕
+ * - body padding [0, 24]
+ * - cta area padding [8, 24, 0, 24]
  */
 export function BottomSheet({
   visible,
   onClose,
   title,
+  titleSize = "md",
   children,
   scroll = true,
+  cta,
 }: Props) {
-  useEffect(() => {
-    // 시트 닫힘 시 키보드 자동 dismiss는 안드로이드 onRequestClose에 위임
-  }, [visible]);
+  const titleClass =
+    titleSize === "lg"
+      ? "text-[22px] font-pretendard-bold text-text-primary"
+      : "text-[18px] font-pretendard-bold text-text-primary";
 
   return (
     <Modal
@@ -42,45 +55,83 @@ export function BottomSheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View className="flex-1 justify-end">
+      <View className="flex-1 justify-end bg-bg-overlay">
         <Pressable
-          className="absolute inset-0 bg-black/40"
+          className="absolute inset-0"
           onPress={onClose}
         />
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="bg-bg-primary rounded-t-sheet"
-          style={{ maxHeight: "92%" }}
+          className="bg-bg-primary"
+          style={{
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            maxHeight: "92%",
+            paddingTop: 14,
+            paddingBottom: cta ? 0 : 44,
+          }}
         >
-          <View className="items-center pt-3 pb-1">
-            <View className="w-12 h-1 bg-text-tertiary rounded-full" />
+          {/* handle bar 36x4 */}
+          <View className="items-center" style={{ paddingBottom: 4 }}>
+            <View
+              className="bg-bg-tertiary"
+              style={{ width: 36, height: 4, borderRadius: 2 }}
+            />
           </View>
 
+          {/* head */}
           {title ? (
-            <View className="flex-row items-center justify-between px-5 pt-2 pb-3">
-              <Text className="text-[17px] font-pretendard-semibold text-text-primary">
-                {title}
-              </Text>
+            <View
+              className="flex-row items-center justify-between"
+              style={{ paddingVertical: 4, paddingHorizontal: 24 }}
+            >
+              <Text className={titleClass}>{title}</Text>
               <Pressable
                 onPress={onClose}
                 className="w-9 h-9 items-center justify-center -mr-2"
               >
-                <X size={22} color="#2A1F18" />
+                <X size={20} color="#7B6A5C" />
               </Pressable>
             </View>
           ) : null}
 
+          {/* body */}
           {scroll ? (
             <ScrollView
-              className="px-5"
-              contentContainerStyle={{ paddingBottom: 24 }}
+              style={{ flexGrow: 0 }}
+              contentContainerStyle={{
+                paddingHorizontal: 24,
+                paddingTop: 18,
+                paddingBottom: cta ? 16 : 0,
+              }}
               keyboardShouldPersistTaps="handled"
             >
               {children}
             </ScrollView>
           ) : (
-            <View className="px-5 pb-6">{children}</View>
+            <View
+              style={{
+                paddingHorizontal: 24,
+                paddingTop: 18,
+                paddingBottom: cta ? 16 : 0,
+              }}
+            >
+              {children}
+            </View>
           )}
+
+          {/* CTA */}
+          {cta ? (
+            <View
+              style={{
+                paddingTop: 8,
+                paddingHorizontal: 24,
+                paddingBottom: 44,
+              }}
+            >
+              {cta}
+            </View>
+          ) : null}
         </KeyboardAvoidingView>
       </View>
     </Modal>

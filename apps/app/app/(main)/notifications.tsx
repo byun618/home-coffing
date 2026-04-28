@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Bell, ChevronLeft } from "lucide-react-native";
+import { ArrowLeft, Bell } from "lucide-react-native";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useNotifications } from "../../src/lib/queries/notifications";
 import { formatRelative } from "../../src/lib/format";
+import { useNotifications } from "../../src/lib/queries/notifications";
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -19,43 +19,59 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
-      <View className="flex-row items-center px-3 py-2">
+      {/* Nav */}
+      <View
+        className="flex-row items-center"
+        style={{ height: 52, paddingHorizontal: 16, gap: 10 }}
+      >
         <Pressable
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
+          className="w-10 h-10 items-center justify-center -ml-2"
         >
-          <ChevronLeft size={24} color="#2A1F18" />
+          <ArrowLeft size={22} color="#2A1F18" />
         </Pressable>
-        <Text className="text-[15px] font-pretendard-medium text-text-primary">
+        <Text className="text-[17px] font-pretendard-semibold text-text-primary">
           알림
         </Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         {query.isLoading ? (
           <View className="py-12 items-center">
             <ActivityIndicator color="#3A2419" />
           </View>
         ) : items.length === 0 ? (
-          <View className="px-6 py-16 items-center gap-3">
-            <View className="w-16 h-16 rounded-full bg-accent-cream items-center justify-center">
-              <Bell size={28} color="#3A2419" />
+          <View
+            className="items-center"
+            style={{ paddingTop: 120, paddingHorizontal: 24, gap: 20 }}
+          >
+            <View
+              className="bg-bg-secondary items-center justify-center"
+              style={{ width: 96, height: 96, borderRadius: 48 }}
+            >
+              <Bell size={44} color="#8B6F5C" strokeWidth={1.5} />
             </View>
-            <Text className="text-[15px] font-pretendard-semibold text-text-primary">
-              알림이 없어요
-            </Text>
-            <Text className="text-[12px] font-pretendard text-text-tertiary text-center leading-5">
-              원두 잔량이 임박하면 여기서 알려드려요{"\n"}(Phase 2 구현 예정)
-            </Text>
+            <View className="items-center" style={{ gap: 8 }}>
+              <Text className="text-[20px] font-pretendard-bold text-text-primary">
+                새 알림이 없어요
+              </Text>
+              <Text className="text-[14px] font-pretendard text-text-secondary text-center">
+                원두가 떨어질 때나 멤버의 새 기록을 알려드려요
+              </Text>
+            </View>
           </View>
         ) : (
-          <View className="px-5 gap-2.5">
+          <View style={{ paddingHorizontal: 24, gap: 10 }}>
             {items.map((item) => (
               <View
                 key={item.id}
-                className="bg-bg-secondary rounded-xl p-4 gap-1 border border-divider"
+                className="bg-bg-secondary"
+                style={{ borderRadius: 16, padding: 16, gap: 4 }}
               >
-                <View className="flex-row items-baseline justify-between gap-2">
+                <View className="flex-row items-baseline justify-between" style={{ gap: 8 }}>
                   <Text className="text-[14px] font-pretendard-semibold text-text-primary flex-1">
                     {item.title}
                   </Text>
