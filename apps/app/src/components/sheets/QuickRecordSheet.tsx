@@ -1,13 +1,9 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import {
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
+
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
@@ -202,7 +198,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
                       gap: 12,
                     }}
                   >
-                    <TextInput
+                    <BottomSheetTextInput
                       value={entry.grams}
                       onChangeText={(v) =>
                         updateEntry(index, {

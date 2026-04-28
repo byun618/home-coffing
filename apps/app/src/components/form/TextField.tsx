@@ -1,5 +1,8 @@
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { forwardRef, useState } from "react";
 import { Text, TextInput, type TextInputProps, View } from "react-native";
+
+import { useInSheet } from "../BottomSheet";
 
 interface Props extends Omit<TextInputProps, "className"> {
   label: string;
@@ -9,13 +12,18 @@ interface Props extends Omit<TextInputProps, "className"> {
 /**
  * TextField — design-system §6.2
  * - bg-bg-secondary, height 56, radius lg(14), padding [0, 18]
- * - 텍스트 body(15/400) text-primary, placeholder text-tertiary
  * - 라벨 13/600 text-secondary 위쪽, gap 8
  * - focus 시 border accent 1px
+ * - 시트 안에서는 BottomSheetTextInput 사용 (gorhom 키보드 핸들링)
  */
 export const TextField = forwardRef<TextInput, Props>(
   ({ label, hint, multiline, ...rest }, ref) => {
     const [focused, setFocused] = useState(false);
+    const inSheet = useInSheet();
+    const InputComponent: typeof TextInput = inSheet
+      ? (BottomSheetTextInput as unknown as typeof TextInput)
+      : TextInput;
+
     return (
       <View style={{ gap: 8 }}>
         <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
@@ -33,7 +41,7 @@ export const TextField = forwardRef<TextInput, Props>(
             borderColor: focused ? "#3A2419" : "transparent",
           }}
         >
-          <TextInput
+          <InputComponent
             ref={ref}
             placeholderTextColor="#A89A8C"
             multiline={multiline}

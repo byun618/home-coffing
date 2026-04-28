@@ -1,4 +1,7 @@
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { Text, TextInput, View } from "react-native";
+
+import { useInSheet } from "../BottomSheet";
 
 interface Props {
   label: string;
@@ -10,9 +13,10 @@ interface Props {
 }
 
 /**
- * NumberField (Variant B — design-system §6.2 + Input Field Variant B)
+ * NumberField — design-system §6.2 Variant B
  * - bg-bg-secondary, 56h, radius lg(14), padding [0, 18]
  * - flex-row: 숫자 좌측 + 단위 우측
+ * - 시트 안에서는 BottomSheetTextInput 사용
  */
 export function NumberField({
   label,
@@ -22,6 +26,11 @@ export function NumberField({
   unit,
   decimals = false,
 }: Props) {
+  const inSheet = useInSheet();
+  const InputComponent: typeof TextInput = inSheet
+    ? (BottomSheetTextInput as unknown as typeof TextInput)
+    : TextInput;
+
   return (
     <View className="flex-1" style={{ gap: 8 }}>
       <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
@@ -36,7 +45,7 @@ export function NumberField({
           gap: 8,
         }}
       >
-        <TextInput
+        <InputComponent
           value={value}
           onChangeText={(next) =>
             onChangeText(
