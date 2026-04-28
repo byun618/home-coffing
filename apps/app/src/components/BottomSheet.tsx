@@ -1,14 +1,15 @@
 import { X } from "lucide-react-native";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import {
-  KeyboardAvoidingView,
+  Animated,
+  Easing,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
   ScrollView,
   Text,
   View,
-  type ViewStyle,
 } from "react-native";
 
 interface Props {
@@ -26,9 +27,12 @@ interface Props {
 
 /**
  * RN Modal 기반 바텀시트 — Expo Go 호환.
- * - iOS: KeyboardAvoidingView padding으로 시트가 키보드 위로 올라옴
- * - Android: statusBarTranslucent=false + softwareKeyboardLayoutMode=resize(app.json)이면
- *            Activity 자체가 resize되어 시트가 자연스레 키보드 위 영역에 위치 (별도 처리 X)
+ * 키보드 처리:
+ * - statusBarTranslucent=true(양 플랫폼) → Modal이 fullscreen, OS resize 영향 X
+ * - Keyboard 이벤트 listening + Animated translateY로 시트만 부드럽게 위로 이동
+ * - 키보드 동일한 duration/easing으로 동기화
+ *
+ * UX:
  * - 백드롭(시트 외부) 탭 → 시트 닫기
  * - 시트 내부: ScrollView keyboardDismissMode="on-drag"로 스크롤 시 키보드 dismiss
  */
@@ -41,42 +45,76 @@ export function BottomSheet({
   scroll = true,
   cta,
 }: Props) {
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const height = e.endCoordinates.height;
+      const duration = e.duration ?? 250;
+      Animated.timing(translateY, {
+        toValue: -height,
+        duration,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    });
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      const duration = e?.duration ?? 250;
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [translateY]);
+
   const titleClass =
     titleSize === "lg"
       ? "text-[22px] font-pretendard-bold text-text-primary"
       : "text-[18px] font-pretendard-bold text-text-primary";
 
-  const wrapperStyle: ViewStyle = {
-    flex: 1,
-    justifyContent: "flex-end",
-  };
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        {/* backdrop */}
+        <Pressable
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          className="bg-bg-overlay"
+          onPress={onClose}
+        />
 
-  const inner = (
-    <>
-      {/* backdrop */}
-      <Pressable
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-        className="bg-bg-overlay"
-        onPress={onClose}
-      />
-
-      {/* sheet content */}
-      <View
-        className="bg-bg-primary"
-        style={{
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          maxHeight: "92%",
-          paddingTop: 14,
-          paddingBottom: cta ? 0 : 44,
-        }}
-      >
+        {/* sheet — Animated translateY로 키보드 등장 시 부드럽게 이동 */}
+        <Animated.View
+          className="bg-bg-primary"
+          style={{
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            maxHeight: "92%",
+            paddingTop: 14,
+            paddingBottom: cta ? 0 : 44,
+            transform: [{ translateY }],
+          }}
+        >
           {/* handle bar 36x4 */}
           <View className="items-center" style={{ paddingBottom: 4 }}>
             <View
@@ -108,7 +146,7 @@ export function BottomSheet({
               contentContainerStyle={{
                 paddingHorizontal: 24,
                 paddingTop: 18,
-                paddingBottom: 16,
+                paddingBottom: cta ? 16 : 16,
               }}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
@@ -128,37 +166,20 @@ export function BottomSheet({
             </View>
           )}
 
-        {/* CTA */}
-        {cta ? (
-          <View
-            style={{
-              paddingTop: 8,
-              paddingHorizontal: 24,
-              paddingBottom: 44,
-            }}
-          >
-            {cta}
-          </View>
-        ) : null}
+          {/* CTA */}
+          {cta ? (
+            <View
+              style={{
+                paddingTop: 8,
+                paddingHorizontal: 24,
+                paddingBottom: 44,
+              }}
+            >
+              {cta}
+            </View>
+          ) : null}
+        </Animated.View>
       </View>
-    </>
-  );
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent={Platform.OS === "ios"}
-    >
-      {Platform.OS === "ios" ? (
-        <KeyboardAvoidingView behavior="padding" style={wrapperStyle}>
-          {inner}
-        </KeyboardAvoidingView>
-      ) : (
-        <View style={wrapperStyle}>{inner}</View>
-      )}
     </Modal>
   );
 }
