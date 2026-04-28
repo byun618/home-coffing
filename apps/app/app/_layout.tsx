@@ -51,10 +51,7 @@ export default function RootLayout() {
               <Stack.Screen name="(main)" />
               <Stack.Screen name="beans/[id]" />
               <Stack.Screen name="records/[id]" />
-              <Stack.Screen
-                name="records/new"
-                options={{ animation: "slide_from_bottom" }}
-              />
+              <Stack.Screen name="records/new" />
               <Stack.Screen name="invite-code" />
               <Stack.Screen name="account" />
               <Stack.Screen name="notifications" />
