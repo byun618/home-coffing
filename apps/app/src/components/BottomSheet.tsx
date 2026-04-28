@@ -8,6 +8,7 @@ import {
   ScrollView,
   Text,
   View,
+  type ViewStyle,
 } from "react-native";
 
 interface Props {
@@ -26,8 +27,8 @@ interface Props {
 /**
  * RN Modal 기반 바텀시트 — Expo Go 호환.
  * - iOS: KeyboardAvoidingView padding으로 시트가 키보드 위로 올라옴
- * - Android: statusBarTranslucent=false + softwareKeyboardLayoutMode=resize(app.json) +
- *            KeyboardAvoidingView height로 시트 영역이 자동 축소
+ * - Android: statusBarTranslucent=false + softwareKeyboardLayoutMode=resize(app.json)이면
+ *            Activity 자체가 resize되어 시트가 자연스레 키보드 위 영역에 위치 (별도 처리 X)
  * - 백드롭(시트 외부) 탭 → 시트 닫기
  * - 시트 내부: ScrollView keyboardDismissMode="on-drag"로 스크롤 시 키보드 dismiss
  */
@@ -45,42 +46,37 @@ export function BottomSheet({
       ? "text-[22px] font-pretendard-bold text-text-primary"
       : "text-[18px] font-pretendard-bold text-text-primary";
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent={Platform.OS === "ios"}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1, justifyContent: "flex-end" }}
-      >
-        {/* backdrop */}
-        <Pressable
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          }}
-          className="bg-bg-overlay"
-          onPress={onClose}
-        />
+  const wrapperStyle: ViewStyle = {
+    flex: 1,
+    justifyContent: "flex-end",
+  };
 
-        {/* sheet content */}
-        <View
-          className="bg-bg-primary"
-          style={{
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            maxHeight: "92%",
-            paddingTop: 14,
-            paddingBottom: cta ? 0 : 44,
-          }}
-        >
+  const inner = (
+    <>
+      {/* backdrop */}
+      <Pressable
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        className="bg-bg-overlay"
+        onPress={onClose}
+      />
+
+      {/* sheet content */}
+      <View
+        className="bg-bg-primary"
+        style={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          maxHeight: "92%",
+          paddingTop: 14,
+          paddingBottom: cta ? 0 : 44,
+        }}
+      >
           {/* handle bar 36x4 */}
           <View className="items-center" style={{ paddingBottom: 4 }}>
             <View
@@ -132,20 +128,37 @@ export function BottomSheet({
             </View>
           )}
 
-          {/* CTA */}
-          {cta ? (
-            <View
-              style={{
-                paddingTop: 8,
-                paddingHorizontal: 24,
-                paddingBottom: 44,
-              }}
-            >
-              {cta}
-            </View>
-          ) : null}
-        </View>
-      </KeyboardAvoidingView>
+        {/* CTA */}
+        {cta ? (
+          <View
+            style={{
+              paddingTop: 8,
+              paddingHorizontal: 24,
+              paddingBottom: 44,
+            }}
+          >
+            {cta}
+          </View>
+        ) : null}
+      </View>
+    </>
+  );
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === "ios"}
+    >
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="padding" style={wrapperStyle}>
+          {inner}
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={wrapperStyle}>{inner}</View>
+      )}
     </Modal>
   );
 }
