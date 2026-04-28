@@ -1,7 +1,13 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
@@ -11,7 +17,6 @@ import type { Bean } from "../../lib/types";
 import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
-import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
 import { RatingField } from "../form/RatingField";
 import {
@@ -145,44 +150,94 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           </Text>
           {entries.map((entry, index) => {
             const bean = beans.find((b) => b.id === entry.beanId);
+            const hasBean = bean !== undefined;
             return (
               <View key={index} className="gap-2">
-                <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center" style={{ gap: 8 }}>
                   <Pressable
                     onPress={() => setPickerFor(index)}
-                    className="flex-1 h-12 rounded-lg border border-divider px-3 flex-row items-center justify-between bg-accent-cream"
+                    className={`flex-1 flex-row items-center justify-between active:opacity-80 ${
+                      hasBean ? "bg-accent" : "bg-bg-secondary"
+                    }`}
+                    style={{
+                      height: 60,
+                      borderRadius: 14,
+                      paddingHorizontal: 16,
+                    }}
                   >
-                    <Text
-                      className={`text-[14px] font-pretendard ${
-                        bean
-                          ? "text-text-primary"
-                          : "text-text-tertiary"
-                      }`}
-                      numberOfLines={1}
-                    >
-                      {bean
-                        ? `${bean.name} · ${formatGrams(bean.remainGrams)} 남음`
-                        : "원두 선택"}
-                    </Text>
-                    <ChevronDown size={16} color="#7B6A5C" />
+                    <View className="flex-1" style={{ gap: 2 }}>
+                      <Text
+                        className={`text-[15px] font-pretendard-bold ${
+                          hasBean ? "text-text-on-dark" : "text-text-tertiary"
+                        }`}
+                        numberOfLines={1}
+                      >
+                        {hasBean ? bean!.name : "원두 선택"}
+                      </Text>
+                      {hasBean ? (
+                        <Text
+                          className="text-[11px] font-pretendard"
+                          style={{ color: "#D9C5B0" }}
+                        >
+                          {formatGrams(bean!.remainGrams)} 남음
+                        </Text>
+                      ) : null}
+                    </View>
+                    <ChevronDown
+                      size={18}
+                      color={hasBean ? "#FBF9F6" : "#7B6A5C"}
+                    />
                   </Pressable>
                   {entries.length > 1 ? (
                     <Pressable
                       onPress={() => removeEntry(index)}
-                      className="w-12 h-12 items-center justify-center rounded-lg border border-divider"
+                      className="bg-bg-secondary items-center justify-center"
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 14,
+                      }}
                     >
-                      <XIcon size={16} color="#7B6A5C" />
+                      <XIcon size={18} color="#7B6A5C" />
                     </Pressable>
                   ) : null}
                 </View>
-                <NumberField
-                  label="사용량"
-                  value={entry.grams}
-                  onChangeText={(v) => updateEntry(index, { grams: v })}
-                  placeholder="예) 18"
-                  unit="g"
-                  decimals
-                />
+                <View className="gap-2">
+                  <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
+                    사용량
+                  </Text>
+                  <View
+                    className="bg-bg-secondary flex-row items-center"
+                    style={{
+                      height: 80,
+                      borderRadius: 14,
+                      paddingHorizontal: 20,
+                      gap: 12,
+                    }}
+                  >
+                    <TextInput
+                      value={entry.grams}
+                      onChangeText={(v) =>
+                        updateEntry(index, {
+                          grams: v.replace(/[^0-9.]/g, ""),
+                        })
+                      }
+                      placeholder="0"
+                      placeholderTextColor="#A89A8C"
+                      keyboardType="decimal-pad"
+                      style={{
+                        flex: 1,
+                        fontFamily: "Pretendard-Bold",
+                        fontSize: 28,
+                        color: "#2A1F18",
+                        padding: 0,
+                      }}
+                    />
+                    <Text className="text-[20px] font-pretendard-medium text-text-secondary">
+                      g
+                    </Text>
+                  </View>
+                </View>
               </View>
             );
           })}
@@ -190,9 +245,13 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           {entries.length < beans.length ? (
             <Pressable
               onPress={addEntry}
-              className="rounded-lg border border-dashed border-accent-light bg-accent-cream py-3 items-center"
+              className="bg-bg-secondary items-center justify-center"
+              style={{
+                borderRadius: 14,
+                paddingVertical: 12,
+              }}
             >
-              <Text className="text-[13px] font-pretendard-medium text-accent">
+              <Text className="text-[13px] font-pretendard-semibold text-accent">
                 + 원두 추가 (블렌딩)
               </Text>
             </Pressable>
