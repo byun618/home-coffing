@@ -16,7 +16,6 @@ import { FAB } from "../../src/components/FAB";
 import { RecordRow } from "../../src/components/RecordRow";
 import { BeanFormSheet } from "../../src/components/sheets/BeanFormSheet";
 import { CafeSwitcherSheet } from "../../src/components/sheets/CafeSwitcherSheet";
-import { QuickRecordSheet } from "../../src/components/sheets/QuickRecordSheet";
 import { useBeansList } from "../../src/lib/queries/beans";
 import { useRecordsList } from "../../src/lib/queries/records";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
@@ -31,7 +30,6 @@ export default function HomeScreen() {
   const recordsQuery = useRecordsList(activeCafeId, { limit: 5 });
 
   const [addBeanOpen, setAddBeanOpen] = useState(false);
-  const [recordOpen, setRecordOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const cafeName =
@@ -53,7 +51,7 @@ export default function HomeScreen() {
       setAddBeanOpen(true);
       return;
     }
-    setRecordOpen(true);
+    router.push("/records/new");
   }
 
   return (
@@ -200,15 +198,6 @@ export default function HomeScreen() {
           visible={addBeanOpen}
           onClose={() => setAddBeanOpen(false)}
           mode={{ kind: "create", cafeId: activeCafeId }}
-        />
-      ) : null}
-
-      {activeCafeId !== null ? (
-        <QuickRecordSheet
-          visible={recordOpen}
-          onClose={() => setRecordOpen(false)}
-          cafeId={activeCafeId}
-          beans={beansQuery.data ?? []}
         />
       ) : null}
 

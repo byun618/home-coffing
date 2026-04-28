@@ -1,11 +1,7 @@
 import { X } from "lucide-react-native";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode } from "react";
 import {
-  Animated,
-  Easing,
-  Keyboard,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -16,25 +12,18 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   title?: string;
-  /** lg=22/700 (S04 등), md=18/700 (default) */
+  /** lg=22/700, md=18/700 (default) */
   titleSize?: "md" | "lg";
   children: ReactNode;
-  /** scroll content 자동 wrap 여부. false면 children 직접 렌더 */
   scroll?: boolean;
-  /** CTA 영역 (시트 하단 고정, padding [8, 24, 0, 24]) */
   cta?: ReactNode;
 }
 
 /**
- * RN Modal 기반 바텀시트 — Expo Go 호환.
- * 키보드 처리:
- * - statusBarTranslucent=true(양 플랫폼) → Modal이 fullscreen, OS resize 영향 X
- * - Keyboard 이벤트 listening + Animated translateY로 시트만 부드럽게 위로 이동
- * - 키보드 동일한 duration/easing으로 동기화
+ * 단순 RN Modal 기반 바텀시트.
  *
- * UX:
- * - 백드롭(시트 외부) 탭 → 시트 닫기
- * - 시트 내부: ScrollView keyboardDismissMode="on-drag"로 스크롤 시 키보드 dismiss
+ * ⚠ 입력 필드가 있는 폼은 풀스크린 라우트로 처리. 본 시트는 picker / action menu / 표시 전용 등
+ * 키보드 핸들링이 필요 없는 케이스에만 사용.
  */
 export function BottomSheet({
   visible,
@@ -45,37 +34,6 @@ export function BottomSheet({
   scroll = true,
   cta,
 }: Props) {
-  const translateY = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const showSub = Keyboard.addListener(showEvent, (e) => {
-      const height = e.endCoordinates.height;
-      const duration = e.duration ?? 250;
-      Animated.timing(translateY, {
-        toValue: -height,
-        duration,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-    });
-    const hideSub = Keyboard.addListener(hideEvent, (e) => {
-      const duration = e?.duration ?? 250;
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [translateY]);
-
   const titleClass =
     titleSize === "lg"
       ? "text-[22px] font-pretendard-bold text-text-primary"
@@ -90,7 +48,6 @@ export function BottomSheet({
       statusBarTranslucent
     >
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        {/* backdrop */}
         <Pressable
           style={{
             position: "absolute",
@@ -103,8 +60,7 @@ export function BottomSheet({
           onPress={onClose}
         />
 
-        {/* sheet — Animated translateY로 키보드 등장 시 부드럽게 이동 */}
-        <Animated.View
+        <View
           className="bg-bg-primary"
           style={{
             borderTopLeftRadius: 24,
@@ -112,10 +68,8 @@ export function BottomSheet({
             maxHeight: "92%",
             paddingTop: 14,
             paddingBottom: cta ? 0 : 44,
-            transform: [{ translateY }],
           }}
         >
-          {/* handle bar 36x4 */}
           <View className="items-center" style={{ paddingBottom: 4 }}>
             <View
               className="bg-bg-tertiary"
@@ -123,7 +77,6 @@ export function BottomSheet({
             />
           </View>
 
-          {/* head */}
           {title ? (
             <View
               className="flex-row items-center justify-between"
@@ -139,7 +92,6 @@ export function BottomSheet({
             </View>
           ) : null}
 
-          {/* body */}
           {scroll ? (
             <ScrollView
               style={{ flexGrow: 0 }}
@@ -149,7 +101,6 @@ export function BottomSheet({
                 paddingBottom: cta ? 16 : 16,
               }}
               keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="on-drag"
               showsVerticalScrollIndicator={false}
             >
               {children}
@@ -166,7 +117,6 @@ export function BottomSheet({
             </View>
           )}
 
-          {/* CTA */}
           {cta ? (
             <View
               style={{
@@ -178,7 +128,7 @@ export function BottomSheet({
               {cta}
             </View>
           ) : null}
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
