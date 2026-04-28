@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
+import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import {
   useUpdateRecord,
   type UpdateRecordInput,
@@ -11,8 +13,17 @@ import { showToast } from "../../lib/stores/toast-store";
 import type { Bean, Record as RecordItem } from "../../lib/types";
 import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
+import { ConfirmDialog } from "../ConfirmDialog";
 import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
+import { RatingField } from "../form/RatingField";
+import {
+  recipeFormDirty,
+  recipeFormFromJson,
+  recipeFormToJson,
+  RecipeFields,
+  type RecipeFormState,
+} from "../form/RecipeFields";
 import { TextField } from "../form/TextField";
 
 interface Props {
@@ -35,6 +46,14 @@ function entriesFromRecord(record: RecordItem): BeanEntry[] {
   }));
 }
 
+function entriesEqual(a: BeanEntry[], b: BeanEntry[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(
+    (entry, index) =>
+      entry.beanId === b[index].beanId && entry.grams === b[index].grams,
+  );
+}
+
 export function RecordEditSheet({
   visible,
   onClose,
@@ -42,11 +61,17 @@ export function RecordEditSheet({
   beans,
   onDelete,
 }: Props) {
-  const [entries, setEntries] = useState<BeanEntry[]>(() =>
-    entriesFromRecord(record),
-  );
+  const baselineEntries = entriesFromRecord(record);
+  const baselineRecipe = recipeFormFromJson(record.recipe);
+
+  const [entries, setEntries] = useState<BeanEntry[]>(baselineEntries);
   const [memo, setMemo] = useState(record.memo ?? "");
-  const [tasteNote, setTasteNote] = useState(record.tasteNote?.text ?? "");
+  const [tasteText, setTasteText] = useState(record.tasteNote?.text ?? "");
+  const [rating, setRating] = useState(record.tasteNote?.rating ?? 0);
+  const [recipe, setRecipe] = useState<RecipeFormState>(baselineRecipe);
+  const [recipeOpen, setRecipeOpen] = useState(record.recipe !== null);
+  const [brewedAt, setBrewedAt] = useState<Date>(new Date(record.brewedAt));
+  const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
 
@@ -56,7 +81,12 @@ export function RecordEditSheet({
     if (visible) {
       setEntries(entriesFromRecord(record));
       setMemo(record.memo ?? "");
-      setTasteNote(record.tasteNote?.text ?? "");
+      setTasteText(record.tasteNote?.text ?? "");
+      setRating(record.tasteNote?.rating ?? 0);
+      setRecipe(recipeFormFromJson(record.recipe));
+      setRecipeOpen(record.recipe !== null);
+      setBrewedAt(new Date(record.brewedAt));
+      setShowPicker(false);
       setError(null);
       setPickerFor(null);
     }
@@ -75,18 +105,16 @@ export function RecordEditSheet({
   function addEntry() {
     const usedIds = new Set(entries.map((entry) => entry.beanId));
     const next = beans.find((bean) => !usedIds.has(bean.id));
-    setEntries((prev) => [
-      ...prev,
-      { beanId: next?.id ?? 0, grams: "" },
-    ]);
+    setEntries((prev) => [...prev, { beanId: next?.id ?? 0, grams: "" }]);
   }
 
-  // record가 참조하는 bean 중 활성 리스트에 없는 것(예: finished)도 picker엔 표시 필요.
+  // 활성 리스트에 없는 record 참조 원두도 picker에 표시
   const beansForPicker = (() => {
-    const map = new Map<number, Pick<Bean, "id" | "name" | "remainGrams" | "rop">>();
-    for (const bean of beans) {
-      map.set(bean.id, bean);
-    }
+    const map = new Map<
+      number,
+      Pick<Bean, "id" | "name" | "remainGrams" | "rop">
+    >();
+    for (const bean of beans) map.set(bean.id, bean);
     for (const beanInRecord of record.beans) {
       if (!map.has(beanInRecord.beanId)) {
         map.set(beanInRecord.beanId, {
@@ -106,6 +134,15 @@ export function RecordEditSheet({
     return Array.from(map.values());
   })();
 
+  const isDirty =
+    !entriesEqual(entries, baselineEntries) ||
+    memo !== (record.memo ?? "") ||
+    tasteText !== (record.tasteNote?.text ?? "") ||
+    rating !== (record.tasteNote?.rating ?? 0) ||
+    recipeFormDirty(recipe, baselineRecipe) ||
+    new Date(record.brewedAt).getTime() !== brewedAt.getTime();
+  const close = useDirtyClose(isDirty, onClose);
+
   const isLoading = updateMutation.isPending;
   const canSubmit =
     entries.length > 0 &&
@@ -120,8 +157,18 @@ export function RecordEditSheet({
         grams: Number(entry.grams),
       })),
       memo: memo.trim() || undefined,
-      tasteNote: tasteNote.trim() ? { text: tasteNote.trim() } : undefined,
+      tasteNote:
+        tasteText.trim() || rating > 0
+          ? {
+              text: tasteText.trim(),
+              ...(rating > 0 ? { rating } : {}),
+            }
+          : undefined,
+      recipe: recipeFormToJson(recipe),
     };
+    if (new Date(record.brewedAt).getTime() !== brewedAt.getTime()) {
+      input.brewedAt = brewedAt.toISOString();
+    }
     try {
       await updateMutation.mutateAsync(input);
       showToast("수정 완료");
@@ -134,7 +181,7 @@ export function RecordEditSheet({
   const isBlend = entries.length > 1;
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="기록 수정">
+    <BottomSheet visible={visible} onClose={close.tryClose} title="기록 수정">
       <View className="gap-4 pt-2">
         <View className="gap-2">
           <Text className="text-[13px] font-pretendard-medium text-text-secondary">
@@ -191,6 +238,35 @@ export function RecordEditSheet({
           ) : null}
         </View>
 
+        <View className="gap-1.5">
+          <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+            추출 시각
+          </Text>
+          <Pressable
+            onPress={() => setShowPicker(true)}
+            className="h-12 rounded-input border border-border px-3 justify-center"
+          >
+            <Text className="text-[14px] font-pretendard text-text-primary">
+              {brewedAt.getFullYear()}-
+              {String(brewedAt.getMonth() + 1).padStart(2, "0")}-
+              {String(brewedAt.getDate()).padStart(2, "0")}{" "}
+              {String(brewedAt.getHours()).padStart(2, "0")}:
+              {String(brewedAt.getMinutes()).padStart(2, "0")}
+            </Text>
+          </Pressable>
+          {showPicker ? (
+            <DateTimePicker
+              value={brewedAt}
+              mode="datetime"
+              display={Platform.OS === "ios" ? "inline" : "default"}
+              onChange={(event, selected) => {
+                setShowPicker(Platform.OS === "ios");
+                if (event.type === "set" && selected) setBrewedAt(selected);
+              }}
+            />
+          ) : null}
+        </View>
+
         <TextField
           label="한 줄 메모"
           value={memo}
@@ -199,13 +275,36 @@ export function RecordEditSheet({
           maxLength={200}
         />
 
+        <RatingField label="별점" value={rating} onChange={setRating} />
+
         <TextField
           label="맛 노트"
-          value={tasteNote}
-          onChangeText={setTasteNote}
+          value={tasteText}
+          onChangeText={setTasteText}
           placeholder="예) 베리, 다크초콜릿"
           multiline
         />
+
+        <View className="gap-2">
+          <Pressable
+            onPress={() => setRecipeOpen((v) => !v)}
+            className="flex-row items-center justify-between py-2"
+          >
+            <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+              레시피
+            </Text>
+            <ChevronDown
+              size={16}
+              color="#8C8C8C"
+              style={{
+                transform: [{ rotate: recipeOpen ? "180deg" : "0deg" }],
+              }}
+            />
+          </Pressable>
+          {recipeOpen ? (
+            <RecipeFields value={recipe} onChange={setRecipe} />
+          ) : null}
+        </View>
 
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">
@@ -268,6 +367,16 @@ export function RecordEditSheet({
           </View>
         </BottomSheet>
       ) : null}
+
+      <ConfirmDialog
+        visible={close.confirming}
+        title="변경사항이 사라져요"
+        message="수정 중인 내용을 닫을까요?"
+        confirmLabel="닫기"
+        danger
+        onConfirm={close.accept}
+        onCancel={close.cancel}
+      />
     </BottomSheet>
   );
 }

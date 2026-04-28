@@ -1,5 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft, Coffee, MoreHorizontal } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Coffee,
+  MoreHorizontal,
+  Star,
+} from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -127,14 +132,81 @@ export default function RecordDetailScreen() {
             </View>
           )}
 
-          {record.tasteNote?.text ? (
-            <View className="bg-surface rounded-card p-4 gap-1 border border-border">
+          {record.tasteNote?.text || record.tasteNote?.rating ? (
+            <View className="bg-surface rounded-card p-4 gap-2 border border-border">
               <Text className="text-[12px] font-pretendard text-text-secondary">
                 맛 노트
               </Text>
-              <Text className="text-[14px] font-pretendard text-text-primary">
-                {record.tasteNote.text}
+              {record.tasteNote.rating ? (
+                <View className="flex-row gap-0.5">
+                  {[1, 2, 3, 4, 5].map((slot) => (
+                    <Star
+                      key={slot}
+                      size={16}
+                      color={
+                        slot <= (record.tasteNote!.rating ?? 0)
+                          ? "#5C3D2E"
+                          : "#BBBBBB"
+                      }
+                      fill={
+                        slot <= (record.tasteNote!.rating ?? 0)
+                          ? "#5C3D2E"
+                          : "transparent"
+                      }
+                    />
+                  ))}
+                </View>
+              ) : null}
+              {record.tasteNote.text ? (
+                <Text className="text-[14px] font-pretendard text-text-primary">
+                  {record.tasteNote.text}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          {record.recipe ? (
+            <View className="bg-surface rounded-card p-4 gap-2 border border-border">
+              <Text className="text-[12px] font-pretendard text-text-secondary">
+                레시피
               </Text>
+              <View className="flex-row flex-wrap gap-x-4 gap-y-1.5">
+                {record.recipe.brewingMethod ? (
+                  <RecipeCell
+                    label="추출"
+                    value={brewingLabel(record.recipe.brewingMethod)}
+                  />
+                ) : null}
+                {record.recipe.waterTempCelsius !== undefined ? (
+                  <RecipeCell
+                    label="물 온도"
+                    value={`${record.recipe.waterTempCelsius}°C`}
+                  />
+                ) : null}
+                {record.recipe.iceGrams !== undefined ? (
+                  <RecipeCell
+                    label="얼음"
+                    value={`${record.recipe.iceGrams}g`}
+                  />
+                ) : null}
+                {record.recipe.totalYieldGrams !== undefined ? (
+                  <RecipeCell
+                    label="추출량"
+                    value={`${record.recipe.totalYieldGrams}g`}
+                  />
+                ) : null}
+                {record.recipe.totalTimeSeconds !== undefined ? (
+                  <RecipeCell
+                    label="시간"
+                    value={`${record.recipe.totalTimeSeconds}초`}
+                  />
+                ) : null}
+              </View>
+              {record.recipe.extraNote ? (
+                <Text className="text-[13px] font-pretendard text-text-primary mt-1">
+                  {record.recipe.extraNote}
+                </Text>
+              ) : null}
             </View>
           ) : null}
         </View>
@@ -193,4 +265,38 @@ export default function RecordDetailScreen() {
       />
     </SafeAreaView>
   );
+}
+
+function RecipeCell({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="gap-0.5">
+      <Text className="text-[10px] font-pretendard text-text-tertiary">
+        {label}
+      </Text>
+      <Text className="text-[13px] font-pretendard-medium text-text-primary">
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function brewingLabel(method: string): string {
+  switch (method) {
+    case "v60":
+      return "V60";
+    case "switch":
+      return "스위치";
+    case "espresso":
+      return "에스프레소";
+    case "moka":
+      return "모카포트";
+    case "aeropress":
+      return "에어로프레스";
+    case "french_press":
+      return "프렌치프레스";
+    case "other":
+      return "기타";
+    default:
+      return method;
+  }
 }
