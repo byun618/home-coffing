@@ -1,4 +1,6 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { Modal, Platform, Pressable, Text, View } from "react-native";
 
@@ -17,23 +19,38 @@ function toISODate(d: Date): string {
 }
 
 /**
- * 날짜 선택. iOS는 Modal에 spinner 띄움 (인라인 시 sheet layout 깨짐 회피).
- * Android는 시스템 dialog 사용 (default behavior).
+ * 날짜 선택.
+ * - iOS: Modal 안에 spinner picker + 취소/확인 (인라인 렌더링 시 sheet layout 깨짐 회피)
+ * - Android: DateTimePickerAndroid.open() imperative API로 시스템 dialog 호출
+ *   (JSX로 렌더 시 flicker / duplicate dialog 발생 가능)
  */
 export function DateField({ label, value, onChange, optional }: Props) {
-  const [open, setOpen] = useState(false);
+  const [iosOpen, setIosOpen] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(
     value ? new Date(value) : new Date(),
   );
 
   function openPicker() {
-    setTempDate(value ? new Date(value) : new Date());
-    setOpen(true);
+    const initial = value ? new Date(value) : new Date();
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: initial,
+        mode: "date",
+        onChange: (event, selected) => {
+          if (event.type === "set" && selected) {
+            onChange(toISODate(selected));
+          }
+        },
+      });
+    } else {
+      setTempDate(initial);
+      setIosOpen(true);
+    }
   }
 
-  function confirm(d: Date) {
-    onChange(toISODate(d));
-    setOpen(false);
+  function confirmIos() {
+    onChange(toISODate(tempDate));
+    setIosOpen(false);
   }
 
   return (
@@ -62,17 +79,17 @@ export function DateField({ label, value, onChange, optional }: Props) {
         </Pressable>
       )}
 
-      {/* iOS: Modal-wrapped spinner picker */}
-      {open && Platform.OS === "ios" ? (
+      {/* iOS: Modal-wrapped spinner picker (Android는 시스템 dialog 사용) */}
+      {iosOpen && Platform.OS === "ios" ? (
         <Modal
           transparent
           visible
           animationType="fade"
-          onRequestClose={() => setOpen(false)}
+          onRequestClose={() => setIosOpen(false)}
         >
           <Pressable
             className="flex-1 bg-bg-overlay justify-end"
-            onPress={() => setOpen(false)}
+            onPress={() => setIosOpen(false)}
           >
             <Pressable
               onPress={(e) => e.stopPropagation()}
@@ -84,10 +101,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
                 paddingBottom: 32,
               }}
             >
-              <View
-                className="items-center"
-                style={{ paddingBottom: 4 }}
-              >
+              <View className="items-center" style={{ paddingBottom: 4 }}>
                 <View
                   className="bg-bg-tertiary"
                   style={{ width: 36, height: 4, borderRadius: 2 }}
@@ -97,7 +111,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
                 className="flex-row items-center justify-between"
                 style={{ paddingVertical: 8, paddingHorizontal: 24 }}
               >
-                <Pressable onPress={() => setOpen(false)}>
+                <Pressable onPress={() => setIosOpen(false)}>
                   <Text className="text-[15px] font-pretendard text-text-secondary">
                     취소
                   </Text>
@@ -105,7 +119,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
                 <Text className="text-[15px] font-pretendard-semibold text-text-primary">
                   {label}
                 </Text>
-                <Pressable onPress={() => confirm(tempDate)}>
+                <Pressable onPress={confirmIos}>
                   <Text className="text-[15px] font-pretendard-bold text-accent">
                     확인
                   </Text>
@@ -123,21 +137,6 @@ export function DateField({ label, value, onChange, optional }: Props) {
             </Pressable>
           </Pressable>
         </Modal>
-      ) : null}
-
-      {/* Android: native system dialog */}
-      {open && Platform.OS === "android" ? (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={(event, selected) => {
-            setOpen(false);
-            if (event.type === "set" && selected) {
-              onChange(toISODate(selected));
-            }
-          }}
-        />
       ) : null}
     </View>
   );
