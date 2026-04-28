@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomSheet } from "../../src/components/BottomSheet";
@@ -19,7 +19,6 @@ import { PrimaryButton } from "../../src/components/form/PrimaryButton";
 import { RatingField } from "../../src/components/form/RatingField";
 import { TextField } from "../../src/components/form/TextField";
 import { ApiError } from "../../src/lib/api";
-import { useScrollToFocused } from "../../src/lib/hooks/useScrollToFocused";
 import { useBeansList } from "../../src/lib/queries/beans";
 import { useCreateRecord } from "../../src/lib/queries/records";
 import { showSuccess } from "../../src/lib/stores/alert-store";
@@ -51,9 +50,6 @@ export default function NewRecordScreen() {
   const [confirmBack, setConfirmBack] = useState(false);
 
   const createMutation = useCreateRecord(activeCafeId);
-  const { scrollRef, onScroll, onInputFocus } = useScrollToFocused({
-    margin: 16,
-  });
 
   // 활성 원두 로딩 후 1개면 자동 선택
   useEffect(() => {
@@ -164,10 +160,7 @@ export default function NewRecordScreen() {
         <View className="w-10" />
       </View>
 
-      <ScrollView
-        ref={scrollRef}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 24,
@@ -176,6 +169,7 @@ export default function NewRecordScreen() {
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bottomOffset={24}
       >
         <View className="gap-5">
           {/* 원두 + 사용량 */}
@@ -255,7 +249,6 @@ export default function NewRecordScreen() {
                             grams: v.replace(/[^0-9.]/g, ""),
                           })
                         }
-                        onFocus={onInputFocus}
                         placeholder="0"
                         placeholderTextColor="#A89A8C"
                         keyboardType="decimal-pad"
@@ -355,7 +348,6 @@ export default function NewRecordScreen() {
             label="한 줄 메모 (선택)"
             value={memo}
             onChangeText={setMemo}
-            onFocus={onInputFocus}
             placeholder="오늘 향이 정말 좋았어"
             maxLength={200}
           />
@@ -368,7 +360,6 @@ export default function NewRecordScreen() {
             label="맛 노트 (선택)"
             value={tasteText}
             onChangeText={setTasteText}
-            onFocus={onInputFocus}
             placeholder="예) 베리, 다크초콜릿, 깊은 단맛"
             multiline
           />
@@ -379,7 +370,7 @@ export default function NewRecordScreen() {
             </Text>
           ) : null}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* CTA */}
       <View

@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AlertSuccessDialog } from "../src/components/AlertSuccessDialog";
@@ -37,31 +38,33 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <StatusBar style="dark" />
-          <AuthGate>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "#FBF9F6" },
-              }}
-            >
-              <Stack.Screen name="(public)" />
-              <Stack.Screen name="(main)" />
-              <Stack.Screen name="beans/[id]" />
-              <Stack.Screen name="records/[id]" />
-              <Stack.Screen name="records/new" />
-              <Stack.Screen name="invite-code" />
-              <Stack.Screen name="account" />
-              <Stack.Screen name="notifications" />
-            </Stack>
-          </AuthGate>
-          <DeepLinkHandler />
-          <AlertSuccessDialog />
-          <ToastViewport />
-        </QueryClientProvider>
-      </SafeAreaProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <StatusBar style="dark" />
+            <AuthGate>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: "#FBF9F6" },
+                }}
+              >
+                <Stack.Screen name="(public)" />
+                <Stack.Screen name="(main)" />
+                <Stack.Screen name="beans/[id]" />
+                <Stack.Screen name="records/[id]" />
+                <Stack.Screen name="records/new" />
+                <Stack.Screen name="invite-code" />
+                <Stack.Screen name="account" />
+                <Stack.Screen name="notifications" />
+              </Stack>
+            </AuthGate>
+            <DeepLinkHandler />
+            <AlertSuccessDialog />
+            <ToastViewport />
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

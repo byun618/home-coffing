@@ -3,6 +3,16 @@
     "version": ">= 10.0.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.35.89:3001/api"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "android": {
