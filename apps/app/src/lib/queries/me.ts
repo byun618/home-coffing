@@ -6,6 +6,7 @@ import { useAuthStore } from "../stores/auth-store";
 
 export interface UpdateMeInput {
   displayName?: string;
+  defaultCafeId?: number;
 }
 
 export function useUpdateMe() {

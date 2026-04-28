@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import {
+  ArrowLeftRight,
   Bell,
   ChevronRight,
   Coffee,
@@ -12,6 +13,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CafeSettingsSheet } from "../../src/components/sheets/CafeSettingsSheet";
+import { CafeSwitcherSheet } from "../../src/components/sheets/CafeSwitcherSheet";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 
 interface RowProps {
@@ -55,8 +57,10 @@ export default function SettingsScreen() {
   const activeCafeId = useAuthStore((state) => state.activeCafeId);
 
   const [cafeSheetOpen, setCafeSheetOpen] = useState(false);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const cafe = user?.memberships.find((m) => m.cafeId === activeCafeId);
+  const hasMultipleCafes = (user?.memberships.length ?? 0) > 1;
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -74,6 +78,15 @@ export default function SettingsScreen() {
             hint={cafe?.role === "admin" ? "호스트" : "멤버"}
             onPress={() => setCafeSheetOpen(true)}
           />
+
+          {hasMultipleCafes ? (
+            <Row
+              icon={<ArrowLeftRight size={20} color="#5C3D2E" />}
+              label="홈카페 전환"
+              hint={`${user?.memberships.length}개 가입`}
+              onPress={() => setSwitcherOpen(true)}
+            />
+          ) : null}
 
           <Row
             icon={<UserCircle size={20} color="#5C3D2E" />}
@@ -130,6 +143,11 @@ export default function SettingsScreen() {
           }}
         />
       ) : null}
+
+      <CafeSwitcherSheet
+        visible={switcherOpen}
+        onClose={() => setSwitcherOpen(false)}
+      />
     </SafeAreaView>
   );
 }
