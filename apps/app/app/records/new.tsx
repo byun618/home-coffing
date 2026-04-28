@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomSheet } from "../../src/components/BottomSheet";
@@ -160,8 +160,8 @@ export default function NewRecordScreen() {
         <View className="w-10" />
       </View>
 
-      <ScrollView
-        className="flex-1"
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: 12,
@@ -170,6 +170,10 @@ export default function NewRecordScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={20}
+        keyboardOpeningTime={250}
       >
         <View className="gap-5">
           {/* 원두 + 사용량 */}
@@ -370,7 +374,7 @@ export default function NewRecordScreen() {
             </Text>
           ) : null}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* CTA */}
       <View
