@@ -165,15 +165,13 @@ export default function NewRecordScreen() {
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingTop: 12,
-          paddingBottom: 80,
+          paddingBottom: 40,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={120}
-        extraHeight={150}
-        keyboardOpeningTime={250}
+        extraScrollHeight={30}
       >
         <View className="gap-5">
           {/* 원두 + 사용량 */}
