@@ -1,6 +1,5 @@
 import "../global.css";
 
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -40,28 +39,26 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <StatusBar style="dark" />
-            <AuthGate>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: "#FBF9F6" },
-                }}
-              >
-                <Stack.Screen name="(public)" />
-                <Stack.Screen name="(main)" />
-                <Stack.Screen name="beans/[id]" />
-                <Stack.Screen name="records/[id]" />
-                <Stack.Screen name="invite-code" />
-                <Stack.Screen name="account" />
-                <Stack.Screen name="notifications" />
-              </Stack>
-            </AuthGate>
-            <DeepLinkHandler />
-            <AlertSuccessDialog />
-            <ToastViewport />
-          </BottomSheetModalProvider>
+          <StatusBar style="dark" />
+          <AuthGate>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "#FBF9F6" },
+              }}
+            >
+              <Stack.Screen name="(public)" />
+              <Stack.Screen name="(main)" />
+              <Stack.Screen name="beans/[id]" />
+              <Stack.Screen name="records/[id]" />
+              <Stack.Screen name="invite-code" />
+              <Stack.Screen name="account" />
+              <Stack.Screen name="notifications" />
+            </Stack>
+          </AuthGate>
+          <DeepLinkHandler />
+          <AlertSuccessDialog />
+          <ToastViewport />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

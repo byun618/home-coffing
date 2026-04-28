@@ -1,21 +1,15 @@
-import {
-  BottomSheetBackdrop,
-  type BottomSheetBackdropProps,
-  BottomSheetModal,
-  BottomSheetScrollView,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
+import { ReactNode } from "react";
 import {
-  ReactNode,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
-import { Pressable, Text, View } from "react-native";
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  type ViewStyle,
+} from "react-native";
 
 interface Props {
   visible: boolean;
@@ -30,18 +24,13 @@ interface Props {
   cta?: ReactNode;
 }
 
-const SNAP_POINTS = ["92%"];
-
-const InSheetContext = createContext(false);
-/** TextField/NumberField가 시트 안에 있는지 감지 → BottomSheetTextInput으로 분기 */
-export const useInSheet = (): boolean => useContext(InSheetContext);
-
 /**
- * @gorhom/bottom-sheet 기반 BottomSheet wrapper.
- * - keyboardBehavior="interactive" + android_keyboardInputMode="adjustResize"
- *   로 키보드 등장 시 시트가 부드럽게 위로 슬라이드
- * - keyboardBlurBehavior="restore"로 키보드 dismiss 후 원위치
- * - 시트 내부 TextField는 InSheetContext 통해 BottomSheetTextInput 사용
+ * RN Modal 기반 바텀시트 — Expo Go 호환.
+ * - iOS: KeyboardAvoidingView padding으로 시트가 키보드 위로 올라옴
+ * - Android: statusBarTranslucent=false + softwareKeyboardLayoutMode=resize(app.json)이면
+ *            Activity 자체가 resize되어 시트가 자연스레 키보드 위 영역에 위치 (별도 처리 X)
+ * - 백드롭(시트 외부) 탭 → 시트 닫기
+ * - 시트 내부: ScrollView keyboardDismissMode="on-drag"로 스크롤 시 키보드 dismiss
  */
 export function BottomSheet({
   visible,
@@ -52,97 +41,94 @@ export function BottomSheet({
   scroll = true,
   cta,
 }: Props) {
-  const sheetRef = useRef<BottomSheetModal>(null);
-
-  useEffect(() => {
-    if (visible) {
-      sheetRef.current?.present();
-    } else {
-      sheetRef.current?.dismiss();
-    }
-  }, [visible]);
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        opacity={0.55}
-        pressBehavior="close"
-      />
-    ),
-    [],
-  );
-
-  const snapPoints = useMemo(() => SNAP_POINTS, []);
-
   const titleClass =
     titleSize === "lg"
       ? "text-[22px] font-pretendard-bold text-text-primary"
       : "text-[18px] font-pretendard-bold text-text-primary";
 
-  return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={snapPoints}
-      enableDynamicSizing={false}
-      enablePanDownToClose
-      keyboardBehavior="interactive"
-      keyboardBlurBehavior="restore"
-      android_keyboardInputMode="adjustResize"
-      backdropComponent={renderBackdrop}
-      handleIndicatorStyle={{
-        backgroundColor: "#E8DFD2",
-        width: 36,
-        height: 4,
-      }}
-      backgroundStyle={{
-        backgroundColor: "#FBF9F6",
-      }}
-      onDismiss={onClose}
-    >
-      <InSheetContext.Provider value={true}>
-        {title ? (
-          <View
-            className="flex-row items-center justify-between"
-            style={{ paddingVertical: 4, paddingHorizontal: 24 }}
-          >
-            <Text className={titleClass}>{title}</Text>
-            <Pressable
-              onPress={onClose}
-              className="w-9 h-9 items-center justify-center -mr-2"
-            >
-              <X size={20} color="#7B6A5C" />
-            </Pressable>
+  const wrapperStyle: ViewStyle = {
+    flex: 1,
+    justifyContent: "flex-end",
+  };
+
+  const inner = (
+    <>
+      {/* backdrop */}
+      <Pressable
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        className="bg-bg-overlay"
+        onPress={onClose}
+      />
+
+      {/* sheet content */}
+      <View
+        className="bg-bg-primary"
+        style={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          maxHeight: "92%",
+          paddingTop: 14,
+          paddingBottom: cta ? 0 : 44,
+        }}
+      >
+          {/* handle bar 36x4 */}
+          <View className="items-center" style={{ paddingBottom: 4 }}>
+            <View
+              className="bg-bg-tertiary"
+              style={{ width: 36, height: 4, borderRadius: 2 }}
+            />
           </View>
-        ) : null}
 
-        {scroll ? (
-          <BottomSheetScrollView
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingTop: 18,
-              paddingBottom: cta ? 16 : 44,
-            }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-            {children}
-          </BottomSheetScrollView>
-        ) : (
-          <BottomSheetView
-            style={{
-              paddingHorizontal: 24,
-              paddingTop: 18,
-              paddingBottom: cta ? 16 : 44,
-            }}
-          >
-            {children}
-          </BottomSheetView>
-        )}
+          {/* head */}
+          {title ? (
+            <View
+              className="flex-row items-center justify-between"
+              style={{ paddingVertical: 4, paddingHorizontal: 24 }}
+            >
+              <Text className={titleClass}>{title}</Text>
+              <Pressable
+                onPress={onClose}
+                className="w-9 h-9 items-center justify-center -mr-2"
+              >
+                <X size={20} color="#7B6A5C" />
+              </Pressable>
+            </View>
+          ) : null}
 
+          {/* body */}
+          {scroll ? (
+            <ScrollView
+              style={{ flexGrow: 0 }}
+              contentContainerStyle={{
+                paddingHorizontal: 24,
+                paddingTop: 18,
+                paddingBottom: 16,
+              }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={false}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View
+              style={{
+                paddingHorizontal: 24,
+                paddingTop: 18,
+                paddingBottom: cta ? 16 : 0,
+              }}
+            >
+              {children}
+            </View>
+          )}
+
+        {/* CTA */}
         {cta ? (
           <View
             style={{
@@ -154,7 +140,25 @@ export function BottomSheet({
             {cta}
           </View>
         ) : null}
-      </InSheetContext.Provider>
-    </BottomSheetModal>
+      </View>
+    </>
+  );
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === "ios"}
+    >
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="padding" style={wrapperStyle}>
+          {inner}
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={wrapperStyle}>{inner}</View>
+      )}
+    </Modal>
   );
 }
