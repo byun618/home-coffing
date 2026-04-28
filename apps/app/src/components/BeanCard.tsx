@@ -1,35 +1,68 @@
 import { Pressable, Text, View } from "react-native";
-import type { BeanWithStats } from "@home-coffing/shared-types";
-import { statsText } from "../lib/format";
+
+import type { Bean } from "../lib/types";
+import { formatDays, formatGrams, ropLabel, ropTone } from "../lib/format";
 import { ProgressBar } from "./ProgressBar";
-import { StatusBadge } from "./StatusBadge";
 
-interface Props {
-  bean: BeanWithStats;
+export function BeanCard({
+  bean,
+  onPress,
+}: {
+  bean: Bean;
   onPress: () => void;
-}
+}) {
+  const fillPct = bean.totalGrams > 0
+    ? (bean.remainGrams / bean.totalGrams) * 100
+    : 0;
+  const tone = ropTone(bean.rop.status);
+  const accent =
+    tone === "danger"
+      ? "text-danger"
+      : tone === "muted"
+        ? "text-text-secondary"
+        : "text-primary";
 
-export function BeanCard({ bean, onPress }: Props) {
-  const isEmpty = bean.status === "empty";
   return (
     <Pressable
       onPress={onPress}
-      className={`bg-surface rounded-card p-5 mb-3 ${isEmpty ? "opacity-60" : ""}`}
+      className="bg-surface rounded-card p-4 gap-3 active:opacity-80 border border-border"
     >
-      <View className="flex-row justify-between items-start mb-3.5">
-        <View className="flex-1 pr-3">
-          <Text className="text-[17px] font-pretendard-semibold text-text-primary">
+      <View className="flex-row items-start justify-between gap-2">
+        <View className="flex-1">
+          <Text
+            className="text-[16px] font-pretendard-semibold text-text-primary"
+            numberOfLines={1}
+          >
             {bean.name}
           </Text>
-          <Text className="text-[13px] font-pretendard text-text-secondary mt-1">
-            {bean.roastDate} 로스팅
+          {bean.origin ? (
+            <Text className="text-[12px] font-pretendard text-text-secondary mt-0.5">
+              {bean.origin}
+            </Text>
+          ) : null}
+        </View>
+        <Text className={`text-[12px] font-pretendard-medium ${accent}`}>
+          {ropLabel(bean.rop.status)}
+        </Text>
+      </View>
+
+      <View className="gap-1.5">
+        <View className="flex-row items-baseline justify-between">
+          <Text className="text-[20px] font-pretendard-bold text-text-primary">
+            {formatGrams(bean.remainGrams)}
+          </Text>
+          <Text className="text-[12px] font-pretendard text-text-secondary">
+            / {formatGrams(bean.totalGrams)}
           </Text>
         </View>
-        <StatusBadge status={bean.status} />
+        <ProgressBar
+          value={fillPct}
+          tone={tone === "danger" ? "danger" : "primary"}
+        />
       </View>
-      <ProgressBar progress={bean.progress} />
-      <Text className="text-[15px] font-pretendard text-text-secondary mt-3">
-        {statsText(bean)}
+
+      <Text className="text-[12px] font-pretendard text-text-secondary">
+        약 {bean.rop.cupsRemaining.toFixed(1)}잔 · ~{formatDays(bean.rop.daysRemaining)}
       </Text>
     </Pressable>
   );

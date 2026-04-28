@@ -1,15 +1,23 @@
 import { View } from "react-native";
 
 /**
- * @param progress 0~100 (filled percentage)
+ * @param value 0~100 (채워질 비율)
+ * @param tone primary(brown) / danger(red) — ROP urgent 등 강조용
  */
-export function ProgressBar({ progress }: { progress: number }) {
-  const remaining = Math.max(2, 100 - progress);
+export function ProgressBar({
+  value,
+  tone = "primary",
+}: {
+  value: number;
+  tone?: "primary" | "danger";
+}) {
+  const filled = Math.max(0, Math.min(100, value));
+  const fillClass = tone === "danger" ? "bg-danger" : "bg-primary";
   return (
     <View className="h-[6px] w-full bg-border rounded-[3px] overflow-hidden">
       <View
-        className="h-full bg-primary rounded-[3px]"
-        style={{ width: `${remaining}%` }}
+        className={`h-full rounded-[3px] ${fillClass}`}
+        style={{ width: `${filled}%` }}
       />
     </View>
   );

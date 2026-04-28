@@ -36,7 +36,7 @@
     ],
     "experiments": {
       "autolinkingModuleResolution": true,
-      "typedRoutes": true
+      "typedRoutes": false
     },
     "extra": {
       "router": {},
