@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
-  ChevronLeft,
+  ArrowLeft,
   Coffee,
   MoreHorizontal,
   Star,
@@ -15,18 +15,59 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ConfirmDialog } from "../../../src/components/ConfirmDialog";
 import { BottomSheet } from "../../../src/components/BottomSheet";
+import { ConfirmDialog } from "../../../src/components/ConfirmDialog";
+import { MemberAvatar } from "../../../src/components/MemberAvatar";
 import { RecordEditSheet } from "../../../src/components/sheets/RecordEditSheet";
 import { useBeansList } from "../../../src/lib/queries/beans";
 import {
   useDeleteRecord,
   useRecordDetail,
 } from "../../../src/lib/queries/records";
-import { useAuthStore } from "../../../src/lib/stores/auth-store";
 import { showSuccess } from "../../../src/lib/stores/alert-store";
+import { useAuthStore } from "../../../src/lib/stores/auth-store";
 import { showToast } from "../../../src/lib/stores/toast-store";
-import { formatGrams, formatRelative } from "../../../src/lib/format";
+import { formatGrams } from "../../../src/lib/format";
+
+function brewedAtLabel(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+
+  const hours = d.getHours();
+  const period = hours < 12 ? "오전" : "오후";
+  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const minute = String(d.getMinutes()).padStart(2, "0");
+  const time = `${period} ${hour12}:${minute}`;
+
+  if (isToday) return `오늘 ${time}`;
+  if (isYesterday) return `어제 ${time}`;
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${time}`;
+}
+
+function brewingMethodLabel(method: string): string {
+  switch (method) {
+    case "v60":
+      return "V60";
+    case "switch":
+      return "스위치";
+    case "espresso":
+      return "에스프레소";
+    case "moka":
+      return "모카포트";
+    case "aeropress":
+      return "에어로프레스";
+    case "french_press":
+      return "프렌치프레스";
+    case "other":
+      return "기타";
+    default:
+      return method;
+  }
+}
 
 export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,6 +94,16 @@ export default function RecordDetailScreen() {
   const record = recordQuery.data;
   const isMine = record.user.id === currentUserId;
   const author = record.user.displayName ?? record.user.email.split("@")[0];
+  const initial =
+    record.user.displayName?.charAt(0) ?? record.user.email.charAt(0);
+  const variant: "self" | "wife" = isMine ? "self" : "wife";
+  const accentColor = isMine ? "#3A2419" : "#8B6F5C";
+
+  // taste note chip 분할 (콤마/중점)
+  const tasteChips = (record.tasteNote?.text ?? "")
+    .split(/[,，·]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 
   async function onConfirmDelete() {
     setConfirmDelete(false);
@@ -65,24 +116,36 @@ export default function RecordDetailScreen() {
     }
   }
 
+  const isBlend = record.beans.length > 1;
+  const beanTotal = record.beans.reduce((sum, b) => sum + b.grams, 0);
+
   return (
     <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
-      <View className="flex-row items-center justify-between px-3 py-2">
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <ChevronLeft size={24} color="#2A1F18" />
-        </Pressable>
+      {/* Nav */}
+      <View
+        className="flex-row items-center justify-between"
+        style={{ height: 52, paddingHorizontal: 16 }}
+      >
+        <View className="flex-row items-center" style={{ gap: 10 }}>
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center -ml-2"
+          >
+            <ArrowLeft size={22} color="#2A1F18" />
+          </Pressable>
+          <Text className="text-[17px] font-pretendard-semibold text-text-primary">
+            기록 상세
+          </Text>
+        </View>
         {isMine ? (
           <Pressable
             onPress={() => setActionsOpen(true)}
-            className="w-10 h-10 items-center justify-center"
+            className="w-10 h-10 items-center justify-center -mr-2"
           >
-            <MoreHorizontal size={22} color="#2A1F18" />
+            <MoreHorizontal size={20} color="#7B6A5C" />
           </Pressable>
         ) : (
-          <View className="w-10 h-10" />
+          <View className="w-10" />
         )}
       </View>
 
@@ -90,92 +153,172 @@ export default function RecordDetailScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View className="px-5 gap-4">
-          <View className="gap-1">
-            {record.memo ? (
-              <Text className="text-[22px] font-pretendard-bold text-text-primary">
-                {record.memo}
+        {/* Header — memo as 24/700 + author meta */}
+        <View
+          className="gap-2"
+          style={{
+            paddingTop: 16,
+            paddingHorizontal: 24,
+            paddingBottom: 28,
+          }}
+        >
+          {record.memo ? (
+            <Text className="text-[24px] font-pretendard-bold text-text-primary">
+              {record.memo}
+            </Text>
+          ) : (
+            <Text className="text-[24px] font-pretendard-bold text-text-tertiary">
+              메모 없음
+            </Text>
+          )}
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <MemberAvatar letter={initial} variant={variant} size={24} />
+            <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+              {author}
+            </Text>
+            <Text className="text-[13px] font-pretendard text-text-tertiary">
+              ·
+            </Text>
+            <Text className="text-[13px] font-pretendard text-text-secondary">
+              {brewedAtLabel(record.brewedAt)}
+            </Text>
+            {!isMine ? (
+              <Text className="text-[12px] font-pretendard text-text-tertiary">
+                (다른 멤버)
               </Text>
             ) : null}
-            <Text className="text-[12px] font-pretendard text-text-secondary">
-              {author}
-              {!isMine ? " (다른 멤버)" : ""} · {formatRelative(record.brewedAt)}
-            </Text>
           </View>
+        </View>
 
-          {record.beans.length === 1 ? (
-            <View className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 border border-divider">
-              <Coffee size={20} color="#3A2419" />
-              <View className="flex-1">
-                <Text className="text-[15px] font-pretendard-semibold text-text-primary">
-                  {record.beans[0].beanName}
-                </Text>
-                <Text className="text-[12px] font-pretendard text-text-secondary mt-0.5">
-                  -{formatGrams(record.beans[0].grams)}
-                </Text>
+        <View
+          className="gap-5"
+          style={{ paddingHorizontal: 24, paddingBottom: 16 }}
+        >
+          {/* Bean card */}
+          {isBlend ? (
+            <View
+              className="bg-bg-secondary"
+              style={{ borderRadius: 16, padding: 18, gap: 12 }}
+            >
+              <Text className="text-[13px] font-pretendard-semibold text-accent">
+                {record.beans.map((b) => b.beanName).join(" + ")} · 총{" "}
+                {formatGrams(beanTotal)}
+              </Text>
+              <View className="gap-2">
+                {record.beans.map((bean) => (
+                  <View
+                    key={bean.beanId}
+                    className="flex-row items-center"
+                    style={{ gap: 10 }}
+                  >
+                    <Coffee size={20} color={accentColor} strokeWidth={2.2} />
+                    <Text className="text-[14px] font-pretendard-medium text-text-primary flex-1">
+                      {bean.beanName}
+                    </Text>
+                    <Text className="text-[14px] font-pretendard-semibold text-text-secondary">
+                      {formatGrams(bean.grams)}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
           ) : (
-            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
-              <Text className="text-[15px] font-pretendard-semibold text-accent">
-                {record.beans.map((bean) => bean.beanName).join(" + ")} · 총 {formatGrams(record.totalGrams)}
-              </Text>
-              <View className="gap-1 mt-1">
-                {record.beans.map((bean) => (
-                  <Text
-                    key={bean.beanId}
-                    className="text-[13px] font-pretendard text-text-secondary"
-                  >
-                    • {bean.beanName} · {formatGrams(bean.grams)}
-                  </Text>
-                ))}
+            <View
+              className="bg-bg-secondary flex-row items-center"
+              style={{ borderRadius: 16, padding: 18, gap: 14 }}
+            >
+              <Coffee size={32} color={accentColor} strokeWidth={2} />
+              <View className="gap-1 flex-1">
+                <Text
+                  className="text-[15px] font-pretendard-semibold text-text-primary"
+                  numberOfLines={1}
+                >
+                  {record.beans[0]?.beanName ?? "—"}
+                </Text>
+                <Text className="text-[13px] font-pretendard text-text-secondary">
+                  {formatGrams(record.beans[0]?.grams ?? 0)} 사용
+                </Text>
               </View>
             </View>
           )}
 
+          {/* Taste note */}
           {record.tasteNote?.text || record.tasteNote?.rating ? (
-            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
-              <Text className="text-[12px] font-pretendard text-text-secondary">
-                맛 노트
-              </Text>
-              {record.tasteNote.rating ? (
-                <View className="flex-row gap-0.5">
-                  {[1, 2, 3, 4, 5].map((slot) => (
-                    <Star
-                      key={slot}
-                      size={16}
-                      color={
-                        slot <= (record.tasteNote!.rating ?? 0)
-                          ? "#3A2419"
-                          : "#A89A8C"
-                      }
-                      fill={
-                        slot <= (record.tasteNote!.rating ?? 0)
-                          ? "#3A2419"
-                          : "transparent"
-                      }
-                    />
+            <View
+              className="bg-bg-secondary"
+              style={{ borderRadius: 16, padding: 18, gap: 14 }}
+            >
+              <View className="flex-row items-center justify-between">
+                <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
+                  맛 노트
+                </Text>
+                {record.tasteNote.rating ? (
+                  <View className="flex-row" style={{ gap: 2 }}>
+                    {[1, 2, 3, 4, 5].map((slot) => (
+                      <Star
+                        key={slot}
+                        size={14}
+                        color={
+                          slot <= (record.tasteNote!.rating ?? 0)
+                            ? "#3A2419"
+                            : "#A89A8C"
+                        }
+                        fill={
+                          slot <= (record.tasteNote!.rating ?? 0)
+                            ? "#3A2419"
+                            : "transparent"
+                        }
+                      />
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+              {tasteChips.length > 1 ? (
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {tasteChips.map((chip, idx) => (
+                    <View
+                      key={idx}
+                      className="bg-bg-primary"
+                      style={{
+                        borderRadius: 36,
+                        paddingVertical: 8,
+                        paddingHorizontal: 14,
+                      }}
+                    >
+                      <Text className="text-[13px] font-pretendard-medium text-text-primary">
+                        {chip}
+                      </Text>
+                    </View>
                   ))}
                 </View>
-              ) : null}
-              {record.tasteNote.text ? (
-                <Text className="text-[14px] font-pretendard text-text-primary">
+              ) : record.tasteNote.text ? (
+                <Text className="text-[14px] font-pretendard text-text-primary leading-5">
                   {record.tasteNote.text}
                 </Text>
               ) : null}
             </View>
           ) : null}
 
-          {record.recipe ? (
-            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
-              <Text className="text-[12px] font-pretendard text-text-secondary">
+          {/* Recipe */}
+          {record.recipe &&
+          (record.recipe.brewingMethod ||
+            record.recipe.waterTempCelsius !== undefined ||
+            record.recipe.iceGrams !== undefined ||
+            record.recipe.totalYieldGrams !== undefined ||
+            record.recipe.totalTimeSeconds !== undefined ||
+            record.recipe.extraNote) ? (
+            <View
+              className="bg-bg-secondary"
+              style={{ borderRadius: 16, padding: 18, gap: 12 }}
+            >
+              <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
                 레시피
               </Text>
-              <View className="flex-row flex-wrap gap-x-4 gap-y-1.5">
+              <View className="flex-row flex-wrap" style={{ gap: 16 }}>
                 {record.recipe.brewingMethod ? (
                   <RecipeCell
                     label="추출"
-                    value={brewingLabel(record.recipe.brewingMethod)}
+                    value={brewingMethodLabel(record.recipe.brewingMethod)}
                   />
                 ) : null}
                 {record.recipe.waterTempCelsius !== undefined ? (
@@ -204,7 +347,7 @@ export default function RecordDetailScreen() {
                 ) : null}
               </View>
               {record.recipe.extraNote ? (
-                <Text className="text-[13px] font-pretendard text-text-primary mt-1">
+                <Text className="text-[13px] font-pretendard text-text-primary leading-5">
                   {record.recipe.extraNote}
                 </Text>
               ) : null}
@@ -224,7 +367,8 @@ export default function RecordDetailScreen() {
               setActionsOpen(false);
               setEditOpen(true);
             }}
-            className="px-2 py-3.5 rounded-lg active:bg-accent-cream"
+            className="active:opacity-80"
+            style={{ paddingVertical: 14, paddingHorizontal: 4 }}
           >
             <Text className="text-[15px] font-pretendard-medium text-text-primary">
               수정
@@ -235,7 +379,8 @@ export default function RecordDetailScreen() {
               setActionsOpen(false);
               setConfirmDelete(true);
             }}
-            className="px-2 py-3.5 rounded-lg active:bg-accent-cream"
+            className="active:opacity-80"
+            style={{ paddingVertical: 14, paddingHorizontal: 4 }}
           >
             <Text className="text-[15px] font-pretendard-medium text-danger">
               삭제
@@ -274,30 +419,9 @@ function RecipeCell({ label, value }: { label: string; value: string }) {
       <Text className="text-[10px] font-pretendard text-text-tertiary">
         {label}
       </Text>
-      <Text className="text-[13px] font-pretendard-medium text-text-primary">
+      <Text className="text-[13px] font-pretendard-semibold text-text-primary">
         {value}
       </Text>
     </View>
   );
-}
-
-function brewingLabel(method: string): string {
-  switch (method) {
-    case "v60":
-      return "V60";
-    case "switch":
-      return "스위치";
-    case "espresso":
-      return "에스프레소";
-    case "moka":
-      return "모카포트";
-    case "aeropress":
-      return "에어로프레스";
-    case "french_press":
-      return "프렌치프레스";
-    case "other":
-      return "기타";
-    default:
-      return method;
-  }
 }
