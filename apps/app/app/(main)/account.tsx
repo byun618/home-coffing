@@ -34,13 +34,13 @@ export default function AccountScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="flex-row items-center px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#1A1A1A" />
+          <ChevronLeft size={24} color="#2A1F18" />
         </Pressable>
         <Text className="text-[15px] font-pretendard-medium text-text-primary">
           계정 관리
@@ -51,7 +51,7 @@ export default function AccountScreen() {
         <View className="px-5 gap-3">
           <Pressable
             onPress={() => setNameOpen(true)}
-            className="bg-surface rounded-card p-4 flex-row items-center justify-between border border-border active:opacity-80"
+            className="bg-bg-secondary rounded-xl p-4 flex-row items-center justify-between border border-divider active:opacity-80"
           >
             <View className="flex-1">
               <Text className="text-[12px] font-pretendard text-text-secondary">
@@ -62,14 +62,14 @@ export default function AccountScreen() {
               </Text>
             </View>
             <View className="flex-row items-center gap-1">
-              <Text className="text-[12px] font-pretendard text-primary">
+              <Text className="text-[12px] font-pretendard text-accent">
                 수정
               </Text>
-              <ChevronRight size={16} color="#BBBBBB" />
+              <ChevronRight size={16} color="#A89A8C" />
             </View>
           </Pressable>
 
-          <View className="bg-surface rounded-card p-4 gap-1 border border-border">
+          <View className="bg-bg-secondary rounded-xl p-4 gap-1 border border-divider">
             <Text className="text-[12px] font-pretendard text-text-secondary">
               이메일
             </Text>
@@ -84,12 +84,12 @@ export default function AccountScreen() {
             </Text>
             <Pressable
               onPress={() => setConfirmDelete(true)}
-              className="bg-surface rounded-card p-4 flex-row items-center justify-between border border-danger active:opacity-80"
+              className="bg-bg-secondary rounded-xl p-4 flex-row items-center justify-between border border-danger active:opacity-80"
             >
               <Text className="text-[15px] font-pretendard-medium text-danger">
                 회원 탈퇴
               </Text>
-              <ChevronRight size={16} color="#E54D2E" />
+              <ChevronRight size={16} color="#B55C3E" />
             </Pressable>
           </View>
         </View>

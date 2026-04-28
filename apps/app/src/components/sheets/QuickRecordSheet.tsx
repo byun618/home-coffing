@@ -150,7 +150,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
                 <View className="flex-row items-center gap-2">
                   <Pressable
                     onPress={() => setPickerFor(index)}
-                    className="flex-1 h-12 rounded-input border border-border px-3 flex-row items-center justify-between bg-primary-subtle"
+                    className="flex-1 h-12 rounded-lg border border-divider px-3 flex-row items-center justify-between bg-accent-cream"
                   >
                     <Text
                       className={`text-[14px] font-pretendard ${
@@ -164,14 +164,14 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
                         ? `${bean.name} · ${formatGrams(bean.remainGrams)} 남음`
                         : "원두 선택"}
                     </Text>
-                    <ChevronDown size={16} color="#8C8C8C" />
+                    <ChevronDown size={16} color="#7B6A5C" />
                   </Pressable>
                   {entries.length > 1 ? (
                     <Pressable
                       onPress={() => removeEntry(index)}
-                      className="w-12 h-12 items-center justify-center rounded-input border border-border"
+                      className="w-12 h-12 items-center justify-center rounded-lg border border-divider"
                     >
-                      <XIcon size={16} color="#8C8C8C" />
+                      <XIcon size={16} color="#7B6A5C" />
                     </Pressable>
                   ) : null}
                 </View>
@@ -190,9 +190,9 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           {entries.length < beans.length ? (
             <Pressable
               onPress={addEntry}
-              className="rounded-input border border-dashed border-primary-light bg-primary-subtle py-3 items-center"
+              className="rounded-lg border border-dashed border-accent-light bg-accent-cream py-3 items-center"
             >
-              <Text className="text-[13px] font-pretendard-medium text-primary">
+              <Text className="text-[13px] font-pretendard-medium text-accent">
                 + 원두 추가 (블렌딩)
               </Text>
             </Pressable>
@@ -206,15 +206,15 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           <View className="flex-row gap-2">
             <Pressable
               onPress={() => setTimeMode("now")}
-              className={`flex-1 h-11 items-center justify-center rounded-input border ${
+              className={`flex-1 h-11 items-center justify-center rounded-lg border ${
                 timeMode === "now"
-                  ? "bg-primary border-primary"
-                  : "bg-surface border-border"
+                  ? "bg-accent border-accent"
+                  : "bg-bg-secondary border-divider"
               }`}
             >
               <Text
                 className={`text-[13px] font-pretendard-medium ${
-                  timeMode === "now" ? "text-surface" : "text-text-secondary"
+                  timeMode === "now" ? "text-text-on-dark" : "text-text-secondary"
                 }`}
               >
                 지금
@@ -225,16 +225,16 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
                 setTimeMode("custom");
                 setShowPicker(true);
               }}
-              className={`flex-1 h-11 items-center justify-center rounded-input border ${
+              className={`flex-1 h-11 items-center justify-center rounded-lg border ${
                 timeMode === "custom"
-                  ? "bg-primary border-primary"
-                  : "bg-surface border-border"
+                  ? "bg-accent border-accent"
+                  : "bg-bg-secondary border-divider"
               }`}
             >
               <Text
                 className={`text-[13px] font-pretendard-medium ${
                   timeMode === "custom"
-                    ? "text-surface"
+                    ? "text-text-on-dark"
                     : "text-text-secondary"
                 }`}
               >
@@ -285,7 +285,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
             </Text>
             <ChevronDown
               size={16}
-              color="#8C8C8C"
+              color="#7B6A5C"
               style={{ transform: [{ rotate: recipeOpen ? "180deg" : "0deg" }] }}
             />
           </Pressable>
@@ -358,7 +358,7 @@ function BeanPickerSheet({
             <Pressable
               key={bean.id}
               onPress={() => onPick(bean.id)}
-              className="bg-surface rounded-card p-4 border border-border active:opacity-80"
+              className="bg-bg-secondary rounded-xl p-4 border border-divider active:opacity-80"
             >
               <Text className="text-[15px] font-pretendard-semibold text-text-primary">
                 {bean.name}

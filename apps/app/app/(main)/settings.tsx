@@ -28,7 +28,7 @@ function Row({ icon, label, hint, onPress, danger }: RowProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="bg-surface rounded-card p-4 flex-row items-center gap-3 active:opacity-80 border border-border"
+      className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 active:opacity-80 border border-divider"
     >
       {icon}
       <View className="flex-1">
@@ -45,7 +45,7 @@ function Row({ icon, label, hint, onPress, danger }: RowProps) {
           </Text>
         ) : null}
       </View>
-      <ChevronRight size={16} color="#BBBBBB" />
+      <ChevronRight size={16} color="#A89A8C" />
     </Pressable>
   );
 }
@@ -63,17 +63,17 @@ export default function SettingsScreen() {
   const hasMultipleCafes = (user?.memberships.length ?? 0) > 1;
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="px-5 pt-2 pb-4">
         <Text className="text-[24px] font-pretendard-bold text-text-primary">
           더보기
         </Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 120 }}>
         <View className="px-5 gap-3">
           <Row
-            icon={<Coffee size={20} color="#5C3D2E" />}
+            icon={<Coffee size={20} color="#3A2419" />}
             label={cafe?.cafeName ?? "홈카페"}
             hint={cafe?.role === "admin" ? "호스트" : "멤버"}
             onPress={() => setCafeSheetOpen(true)}
@@ -81,7 +81,7 @@ export default function SettingsScreen() {
 
           {hasMultipleCafes ? (
             <Row
-              icon={<ArrowLeftRight size={20} color="#5C3D2E" />}
+              icon={<ArrowLeftRight size={20} color="#3A2419" />}
               label="홈카페 전환"
               hint={`${user?.memberships.length}개 가입`}
               onPress={() => setSwitcherOpen(true)}
@@ -89,20 +89,20 @@ export default function SettingsScreen() {
           ) : null}
 
           <Row
-            icon={<UserCircle size={20} color="#5C3D2E" />}
+            icon={<UserCircle size={20} color="#3A2419" />}
             label="계정 관리"
             hint={user?.email}
             onPress={() => router.push("/(main)/account")}
           />
 
           <Row
-            icon={<Bell size={20} color="#5C3D2E" />}
+            icon={<Bell size={20} color="#3A2419" />}
             label="알림"
             onPress={() => router.push("/(main)/notifications")}
           />
 
           <Row
-            icon={<LinkIcon size={20} color="#5C3D2E" />}
+            icon={<LinkIcon size={20} color="#3A2419" />}
             label="초대 코드 입력"
             hint="다른 홈카페에 합류"
             onPress={() => router.push("/(main)/invite-code")}
@@ -111,13 +111,13 @@ export default function SettingsScreen() {
           <View className="mt-2">
             <Pressable
               onPress={() => logout()}
-              className="bg-surface rounded-card p-4 flex-row items-center gap-3 active:opacity-80 border border-border"
+              className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 active:opacity-80 border border-divider"
             >
-              <LogOut size={20} color="#E54D2E" />
+              <LogOut size={20} color="#B55C3E" />
               <Text className="text-[15px] font-pretendard-medium text-danger flex-1">
                 로그아웃
               </Text>
-              <ChevronRight size={16} color="#BBBBBB" />
+              <ChevronRight size={16} color="#A89A8C" />
             </Pressable>
           </View>
         </View>

@@ -38,7 +38,7 @@ export function ConfirmDialog({
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="bg-surface rounded-modal w-full p-5 gap-4"
+          className="bg-bg-secondary rounded-sheet w-full p-5 gap-4"
         >
           <View className="gap-1.5">
             <Text className="text-[17px] font-pretendard-semibold text-text-primary">
@@ -54,7 +54,7 @@ export function ConfirmDialog({
           <View className="flex-row gap-2 mt-1">
             <Pressable
               onPress={onCancel}
-              className="flex-1 h-12 items-center justify-center rounded-btn bg-primary-subtle active:opacity-80"
+              className="flex-1 h-12 items-center justify-center rounded-lg bg-accent-cream active:opacity-80"
             >
               <Text className="text-[15px] font-pretendard-medium text-text-primary">
                 {cancelLabel}
@@ -62,11 +62,11 @@ export function ConfirmDialog({
             </Pressable>
             <Pressable
               onPress={onConfirm}
-              className={`flex-1 h-12 items-center justify-center rounded-btn active:opacity-80 ${
-                danger ? "bg-danger" : "bg-primary"
+              className={`flex-1 h-12 items-center justify-center rounded-lg active:opacity-80 ${
+                danger ? "bg-danger" : "bg-accent"
               }`}
             >
-              <Text className="text-[15px] font-pretendard-semibold text-surface">
+              <Text className="text-[15px] font-pretendard-semibold text-text-on-dark">
                 {confirmLabel}
               </Text>
             </Pressable>

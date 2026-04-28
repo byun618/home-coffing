@@ -5,7 +5,7 @@ export default function PublicLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#F2EDE8" },
+        contentStyle: { backgroundColor: "#FBF9F6" },
       }}
     />
   );

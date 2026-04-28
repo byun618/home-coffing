@@ -36,7 +36,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg">
+    <SafeAreaView className="flex-1 bg-bg-primary">
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -88,7 +88,7 @@ export default function LoginScreen() {
             <Link href="/(public)/signup" asChild>
               <Pressable className="items-center py-3">
                 <Text className="text-[14px] font-pretendard text-text-secondary">
-                  계정이 없나요? <Text className="text-primary">가입</Text>
+                  계정이 없나요? <Text className="text-accent">가입</Text>
                 </Text>
               </Pressable>
             </Link>

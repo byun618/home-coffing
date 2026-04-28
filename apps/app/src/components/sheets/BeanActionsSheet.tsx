@@ -25,7 +25,7 @@ function ActionRow({ icon, label, onPress, danger }: ActionRowProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center gap-3 px-2 py-3.5 rounded-btn active:bg-primary-subtle"
+      className="flex-row items-center gap-3 px-2 py-3.5 rounded-lg active:bg-accent-cream"
     >
       {icon}
       <Text
@@ -51,23 +51,23 @@ export function BeanActionsSheet({
     <BottomSheet visible={visible} onClose={onClose} title="원두 관리">
       <View className="gap-1 pt-2 pb-4">
         <ActionRow
-          icon={<Pencil size={18} color="#1A1A1A" />}
+          icon={<Pencil size={18} color="#2A1F18" />}
           label="수정"
           onPress={onEdit}
         />
         <ActionRow
-          icon={<Coffee size={18} color="#1A1A1A" />}
+          icon={<Coffee size={18} color="#2A1F18" />}
           label="다 썼어요"
           onPress={onMarkConsumed}
         />
         <ActionRow
-          icon={<Trash2 size={18} color="#E54D2E" />}
+          icon={<Trash2 size={18} color="#B55C3E" />}
           label="버렸어요"
           onPress={onMarkDiscarded}
           danger
         />
         <ActionRow
-          icon={<Archive size={18} color="#1A1A1A" />}
+          icon={<Archive size={18} color="#2A1F18" />}
           label="보관함으로"
           onPress={onArchive}
         />

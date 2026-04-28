@@ -94,7 +94,7 @@ export function CafeSettingsSheet({
       <View className="gap-5 pt-2">
         {!cafe ? (
           <View className="py-12 items-center">
-            <ActivityIndicator color="#5C3D2E" />
+            <ActivityIndicator color="#3A2419" />
           </View>
         ) : (
           <>
@@ -124,8 +124,8 @@ export function CafeSettingsSheet({
                     className="flex-row items-center gap-1"
                     disabled={createInvitation.isPending}
                   >
-                    <UserPlus size={14} color="#5C3D2E" />
-                    <Text className="text-[13px] font-pretendard-medium text-primary">
+                    <UserPlus size={14} color="#3A2419" />
+                    <Text className="text-[13px] font-pretendard-medium text-accent">
                       {createInvitation.isPending ? "발급 중..." : "초대"}
                     </Text>
                   </Pressable>
@@ -140,7 +140,7 @@ export function CafeSettingsSheet({
                   return (
                     <View
                       key={member.userId}
-                      className="bg-surface rounded-card p-3 flex-row items-center justify-between border border-border"
+                      className="bg-bg-secondary rounded-xl p-3 flex-row items-center justify-between border border-divider"
                     >
                       <View className="flex-1">
                         <Text className="text-[14px] font-pretendard-semibold text-text-primary">
@@ -154,7 +154,7 @@ export function CafeSettingsSheet({
                       <Text
                         className={`text-[11px] font-pretendard-medium ${
                           member.role === "admin"
-                            ? "text-primary"
+                            ? "text-accent"
                             : "text-text-secondary"
                         }`}
                       >
@@ -178,9 +178,9 @@ export function CafeSettingsSheet({
               </Text>
               <Pressable
                 onPress={() => setConfirmLeave(true)}
-                className="rounded-btn p-4 flex-row items-center gap-2 border border-danger active:opacity-80"
+                className="rounded-lg p-4 flex-row items-center gap-2 border border-danger active:opacity-80"
               >
-                <LogOut size={16} color="#E54D2E" />
+                <LogOut size={16} color="#B55C3E" />
                 <Text className="text-[14px] font-pretendard-medium text-danger">
                   홈카페 떠나기
                 </Text>

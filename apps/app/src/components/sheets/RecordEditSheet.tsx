@@ -194,7 +194,7 @@ export function RecordEditSheet({
                 <View className="flex-row items-center gap-2">
                   <Pressable
                     onPress={() => setPickerFor(index)}
-                    className="flex-1 h-12 rounded-input border border-border px-3 flex-row items-center justify-between bg-primary-subtle"
+                    className="flex-1 h-12 rounded-lg border border-divider px-3 flex-row items-center justify-between bg-accent-cream"
                   >
                     <Text
                       className={`text-[14px] font-pretendard ${
@@ -204,14 +204,14 @@ export function RecordEditSheet({
                     >
                       {bean ? bean.name : "원두 선택"}
                     </Text>
-                    <ChevronDown size={16} color="#8C8C8C" />
+                    <ChevronDown size={16} color="#7B6A5C" />
                   </Pressable>
                   {entries.length > 1 ? (
                     <Pressable
                       onPress={() => removeEntry(index)}
-                      className="w-12 h-12 items-center justify-center rounded-input border border-border"
+                      className="w-12 h-12 items-center justify-center rounded-lg border border-divider"
                     >
-                      <XIcon size={16} color="#8C8C8C" />
+                      <XIcon size={16} color="#7B6A5C" />
                     </Pressable>
                   ) : null}
                 </View>
@@ -229,9 +229,9 @@ export function RecordEditSheet({
           {entries.length < beansForPicker.length ? (
             <Pressable
               onPress={addEntry}
-              className="rounded-input border border-dashed border-primary-light bg-primary-subtle py-3 items-center"
+              className="rounded-lg border border-dashed border-accent-light bg-accent-cream py-3 items-center"
             >
-              <Text className="text-[13px] font-pretendard-medium text-primary">
+              <Text className="text-[13px] font-pretendard-medium text-accent">
                 + 원두 추가 (블렌딩)
               </Text>
             </Pressable>
@@ -244,7 +244,7 @@ export function RecordEditSheet({
           </Text>
           <Pressable
             onPress={() => setShowPicker(true)}
-            className="h-12 rounded-input border border-border px-3 justify-center"
+            className="h-12 rounded-lg border border-divider px-3 justify-center"
           >
             <Text className="text-[14px] font-pretendard text-text-primary">
               {brewedAt.getFullYear()}-
@@ -295,7 +295,7 @@ export function RecordEditSheet({
             </Text>
             <ChevronDown
               size={16}
-              color="#8C8C8C"
+              color="#7B6A5C"
               style={{
                 transform: [{ rotate: recipeOpen ? "180deg" : "0deg" }],
               }}
@@ -315,7 +315,7 @@ export function RecordEditSheet({
         <View className="flex-row gap-2 mt-2">
           <Pressable
             onPress={onDelete}
-            className="flex-1 h-[52px] items-center justify-center rounded-btn border border-danger active:opacity-80"
+            className="flex-1 h-[52px] items-center justify-center rounded-lg border border-danger active:opacity-80"
           >
             <Text className="text-[15px] font-pretendard-medium text-danger">
               삭제
@@ -352,7 +352,7 @@ export function RecordEditSheet({
                     updateEntry(pickerFor, { beanId: bean.id });
                     setPickerFor(null);
                   }}
-                  className="bg-surface rounded-card p-4 border border-border active:opacity-80"
+                  className="bg-bg-secondary rounded-xl p-4 border border-divider active:opacity-80"
                 >
                   <Text className="text-[15px] font-pretendard-semibold text-text-primary">
                     {bean.name}

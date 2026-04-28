@@ -11,11 +11,11 @@ export function PrimaryButton({ label, onPress, disabled }: Props) {
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      className={`h-[52px] rounded-btn items-center justify-center ${
-        disabled ? "bg-primary-light opacity-50" : "bg-primary active:opacity-80"
+      className={`h-[52px] rounded-lg items-center justify-center ${
+        disabled ? "bg-accent-light opacity-50" : "bg-accent active:opacity-80"
       }`}
     >
-      <Text className="text-[15px] font-pretendard-semibold text-surface">
+      <Text className="text-[15px] font-pretendard-semibold text-text-on-dark">
         {label}
       </Text>
     </Pressable>

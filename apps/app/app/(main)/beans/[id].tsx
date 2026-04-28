@@ -43,8 +43,8 @@ export default function BeanDetailScreen() {
 
   if (beanQuery.isLoading || !beanQuery.data) {
     return (
-      <SafeAreaView className="flex-1 bg-bg items-center justify-center">
-        <ActivityIndicator color="#5C3D2E" />
+      <SafeAreaView className="flex-1 bg-bg-primary items-center justify-center">
+        <ActivityIndicator color="#3A2419" />
       </SafeAreaView>
     );
   }
@@ -80,13 +80,13 @@ export default function BeanDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="flex-row items-center justify-between px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#1A1A1A" />
+          <ChevronLeft size={24} color="#2A1F18" />
         </Pressable>
         <Text className="text-[15px] font-pretendard-medium text-text-primary">
           원두 상세
@@ -95,7 +95,7 @@ export default function BeanDetailScreen() {
           onPress={() => setActionsOpen(true)}
           className="w-10 h-10 items-center justify-center"
         >
-          <MoreHorizontal size={22} color="#1A1A1A" />
+          <MoreHorizontal size={22} color="#2A1F18" />
         </Pressable>
       </View>
 
@@ -113,10 +113,10 @@ export default function BeanDetailScreen() {
           </View>
 
           <View
-            className={`rounded-card p-5 gap-3 ${
+            className={`rounded-xl p-5 gap-3 ${
               isUrgent
-                ? "bg-danger-subtle border border-danger"
-                : "bg-surface border border-border"
+                ? "bg-bg-secondary border border-danger"
+                : "bg-bg-secondary border border-divider"
             }`}
             style={isUrgent ? { borderWidth: 1.5 } : undefined}
           >
@@ -151,7 +151,7 @@ export default function BeanDetailScreen() {
                     ? "text-danger"
                     : tone === "muted"
                       ? "text-text-secondary"
-                      : "text-primary"
+                      : "text-accent"
                 }`}
               >
                 {ropLabel(bean.rop.status)}
@@ -159,7 +159,7 @@ export default function BeanDetailScreen() {
             </View>
           </View>
 
-          <View className="bg-surface rounded-card p-5 gap-3 border border-border">
+          <View className="bg-bg-secondary rounded-xl p-5 gap-3 border border-divider">
             <Text className="text-[13px] font-pretendard-medium text-text-secondary">
               원두 정보
             </Text>
@@ -182,10 +182,10 @@ export default function BeanDetailScreen() {
             </Text>
             {recordsQuery.isLoading ? (
               <View className="py-6 items-center">
-                <ActivityIndicator color="#5C3D2E" />
+                <ActivityIndicator color="#3A2419" />
               </View>
             ) : (recordsQuery.data ?? []).length === 0 ? (
-              <View className="bg-surface rounded-card p-6 items-center border border-border">
+              <View className="bg-bg-secondary rounded-xl p-6 items-center border border-divider">
                 <Text className="text-[13px] font-pretendard text-text-tertiary">
                   아직 기록이 없어요
                 </Text>
@@ -249,14 +249,14 @@ export default function BeanDetailScreen() {
 
       {isUrgent ? (
         <View
-          className="absolute left-0 right-0 bottom-0 px-5 pb-6 pt-3 bg-bg border-t border-border"
+          className="absolute left-0 right-0 bottom-0 px-5 pb-6 pt-3 bg-bg-primary border-t border-divider"
         >
           <Pressable
             onPress={onPressOrder}
-            className="h-[52px] rounded-btn bg-danger flex-row items-center justify-center gap-2 active:opacity-80"
+            className="h-[52px] rounded-lg bg-danger flex-row items-center justify-center gap-2 active:opacity-80"
           >
-            <ShoppingCart size={18} color="#FFFFFF" />
-            <Text className="text-[15px] font-pretendard-semibold text-surface">
+            <ShoppingCart size={18} color="#FBF9F6" />
+            <Text className="text-[15px] font-pretendard-semibold text-text-on-dark">
               다음 원두 주문하기
             </Text>
           </Pressable>

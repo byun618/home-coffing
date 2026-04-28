@@ -18,13 +18,13 @@ export default function NotificationsScreen() {
   const items = query.data ?? [];
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="flex-row items-center px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#1A1A1A" />
+          <ChevronLeft size={24} color="#2A1F18" />
         </Pressable>
         <Text className="text-[15px] font-pretendard-medium text-text-primary">
           알림
@@ -34,12 +34,12 @@ export default function NotificationsScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
         {query.isLoading ? (
           <View className="py-12 items-center">
-            <ActivityIndicator color="#5C3D2E" />
+            <ActivityIndicator color="#3A2419" />
           </View>
         ) : items.length === 0 ? (
           <View className="px-6 py-16 items-center gap-3">
-            <View className="w-16 h-16 rounded-full bg-primary-subtle items-center justify-center">
-              <Bell size={28} color="#5C3D2E" />
+            <View className="w-16 h-16 rounded-full bg-accent-cream items-center justify-center">
+              <Bell size={28} color="#3A2419" />
             </View>
             <Text className="text-[15px] font-pretendard-semibold text-text-primary">
               알림이 없어요
@@ -53,7 +53,7 @@ export default function NotificationsScreen() {
             {items.map((item) => (
               <View
                 key={item.id}
-                className="bg-surface rounded-card p-4 gap-1 border border-border"
+                className="bg-bg-secondary rounded-xl p-4 gap-1 border border-divider"
               >
                 <View className="flex-row items-baseline justify-between gap-2">
                   <Text className="text-[14px] font-pretendard-semibold text-text-primary flex-1">

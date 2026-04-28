@@ -23,8 +23,8 @@ export function ToastViewport() {
           <Pressable
             key={toast.id}
             onPress={() => dismiss(toast.id)}
-            className={`rounded-card px-4 py-3 ${
-              toast.tone === "success" ? "bg-primary" : "bg-danger"
+            className={`rounded-xl px-4 py-3 ${
+              toast.tone === "success" ? "bg-accent" : "bg-danger"
             }`}
             style={{
               shadowColor: "#000",
@@ -34,7 +34,7 @@ export function ToastViewport() {
               elevation: 3,
             }}
           >
-            <Text className="text-[14px] font-pretendard-medium text-surface">
+            <Text className="text-[14px] font-pretendard-medium text-text-on-dark">
               {toast.message}
             </Text>
           </Pressable>

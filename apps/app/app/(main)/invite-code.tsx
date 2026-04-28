@@ -54,13 +54,13 @@ export default function InviteCodeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="flex-row items-center px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#1A1A1A" />
+          <ChevronLeft size={24} color="#2A1F18" />
         </Pressable>
         <Text className="text-[15px] font-pretendard-medium text-text-primary">
           초대 코드 입력
@@ -73,8 +73,8 @@ export default function InviteCodeScreen() {
       >
         <View className="flex-1 px-6 pt-8 gap-6">
           <View className="items-center gap-3">
-            <View className="w-16 h-16 rounded-full bg-primary-subtle items-center justify-center">
-              <LinkIcon size={28} color="#5C3D2E" />
+            <View className="w-16 h-16 rounded-full bg-accent-cream items-center justify-center">
+              <LinkIcon size={28} color="#3A2419" />
             </View>
             <Text className="text-[22px] font-pretendard-bold text-text-primary">
               초대 코드를 입력해요

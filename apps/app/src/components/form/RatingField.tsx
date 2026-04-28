@@ -32,8 +32,8 @@ export function RatingField({ label, value, onChange }: Props) {
             >
               <Star
                 size={26}
-                color={filled ? "#5C3D2E" : "#BBBBBB"}
-                fill={filled ? "#5C3D2E" : "transparent"}
+                color={filled ? "#3A2419" : "#A89A8C"}
+                fill={filled ? "#3A2419" : "transparent"}
               />
             </Pressable>
           );

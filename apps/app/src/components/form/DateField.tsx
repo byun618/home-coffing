@@ -30,7 +30,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
       </Text>
       <Pressable
         onPress={() => setOpen(true)}
-        className="h-12 rounded-input px-3 justify-center border border-border"
+        className="h-12 rounded-lg px-3 justify-center border border-divider"
       >
         <Text
           className={`text-[15px] font-pretendard ${value ? "text-text-primary" : "text-text-tertiary"}`}

@@ -50,17 +50,17 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
           초대 코드를 공유해 함께 기록해요
         </Text>
 
-        <View className="bg-primary rounded-card p-6 gap-2 items-center">
-          <Text className="text-[12px] font-pretendard text-surface/70">
+        <View className="bg-accent rounded-xl p-6 gap-2 items-center">
+          <Text className="text-[12px] font-pretendard text-text-on-dark/70">
             초대 코드
           </Text>
           <Text
-            className="text-[28px] font-pretendard-bold text-surface"
+            className="text-[28px] font-pretendard-bold text-text-on-dark"
             style={{ letterSpacing: 4 }}
           >
             {display}
           </Text>
-          <Text className="text-[11px] font-pretendard text-surface/70 mt-1">
+          <Text className="text-[11px] font-pretendard text-text-on-dark/70 mt-1">
             {daysLeft}일 후 만료
           </Text>
         </View>
@@ -68,19 +68,19 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
         <View className="flex-row gap-2">
           <Pressable
             onPress={copyCode}
-            className="flex-1 h-12 items-center justify-center rounded-btn bg-primary-subtle flex-row gap-2 active:opacity-80"
+            className="flex-1 h-12 items-center justify-center rounded-lg bg-accent-cream flex-row gap-2 active:opacity-80"
           >
-            <Copy size={16} color="#5C3D2E" />
-            <Text className="text-[14px] font-pretendard-medium text-primary">
+            <Copy size={16} color="#3A2419" />
+            <Text className="text-[14px] font-pretendard-medium text-accent">
               코드 복사
             </Text>
           </Pressable>
           <Pressable
             onPress={shareCode}
-            className="flex-1 h-12 items-center justify-center rounded-btn bg-primary flex-row gap-2 active:opacity-80"
+            className="flex-1 h-12 items-center justify-center rounded-lg bg-accent flex-row gap-2 active:opacity-80"
           >
-            <Share2 size={16} color="#FFFFFF" />
-            <Text className="text-[14px] font-pretendard-medium text-surface">
+            <Share2 size={16} color="#FBF9F6" />
+            <Text className="text-[14px] font-pretendard-medium text-text-on-dark">
               링크 공유
             </Text>
           </Pressable>

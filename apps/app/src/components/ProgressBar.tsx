@@ -12,7 +12,7 @@ export function ProgressBar({
   tone?: "primary" | "danger";
 }) {
   const filled = Math.max(0, Math.min(100, value));
-  const fillClass = tone === "danger" ? "bg-danger" : "bg-primary";
+  const fillClass = tone === "danger" ? "bg-danger" : "bg-accent";
   return (
     <View className="h-[6px] w-full bg-border rounded-[3px] overflow-hidden">
       <View

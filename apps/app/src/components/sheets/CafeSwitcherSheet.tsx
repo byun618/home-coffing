@@ -43,8 +43,8 @@ export function CafeSwitcherSheet({ visible, onClose }: Props) {
             <Pressable
               key={membership.cafeId}
               onPress={() => onPick(membership.cafeId)}
-              className={`bg-surface rounded-card p-4 flex-row items-center justify-between border active:opacity-80 ${
-                isActive ? "border-primary" : "border-border"
+              className={`bg-bg-secondary rounded-xl p-4 flex-row items-center justify-between border active:opacity-80 ${
+                isActive ? "border-accent" : "border-divider"
               }`}
             >
               <View className="flex-1">
@@ -55,7 +55,7 @@ export function CafeSwitcherSheet({ visible, onClose }: Props) {
                   {membership.role === "admin" ? "호스트" : "멤버"}
                 </Text>
               </View>
-              {isActive ? <Check size={18} color="#5C3D2E" /> : null}
+              {isActive ? <Check size={18} color="#3A2419" /> : null}
             </Pressable>
           );
         })}

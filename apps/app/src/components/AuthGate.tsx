@@ -26,8 +26,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (status === "loading") {
     return (
-      <View className="flex-1 items-center justify-center bg-bg">
-        <ActivityIndicator color="#5C3D2E" />
+      <View className="flex-1 items-center justify-center bg-bg-primary">
+        <ActivityIndicator color="#3A2419" />
       </View>
     );
   }

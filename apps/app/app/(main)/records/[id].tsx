@@ -43,8 +43,8 @@ export default function RecordDetailScreen() {
 
   if (recordQuery.isLoading || !recordQuery.data) {
     return (
-      <SafeAreaView className="flex-1 bg-bg items-center justify-center">
-        <ActivityIndicator color="#5C3D2E" />
+      <SafeAreaView className="flex-1 bg-bg-primary items-center justify-center">
+        <ActivityIndicator color="#3A2419" />
       </SafeAreaView>
     );
   }
@@ -65,20 +65,20 @@ export default function RecordDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="flex-row items-center justify-between px-3 py-2">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center"
         >
-          <ChevronLeft size={24} color="#1A1A1A" />
+          <ChevronLeft size={24} color="#2A1F18" />
         </Pressable>
         {isMine ? (
           <Pressable
             onPress={() => setActionsOpen(true)}
             className="w-10 h-10 items-center justify-center"
           >
-            <MoreHorizontal size={22} color="#1A1A1A" />
+            <MoreHorizontal size={22} color="#2A1F18" />
           </Pressable>
         ) : (
           <View className="w-10 h-10" />
@@ -103,8 +103,8 @@ export default function RecordDetailScreen() {
           </View>
 
           {record.beans.length === 1 ? (
-            <View className="bg-surface rounded-card p-4 flex-row items-center gap-3 border border-border">
-              <Coffee size={20} color="#5C3D2E" />
+            <View className="bg-bg-secondary rounded-xl p-4 flex-row items-center gap-3 border border-divider">
+              <Coffee size={20} color="#3A2419" />
               <View className="flex-1">
                 <Text className="text-[15px] font-pretendard-semibold text-text-primary">
                   {record.beans[0].beanName}
@@ -115,8 +115,8 @@ export default function RecordDetailScreen() {
               </View>
             </View>
           ) : (
-            <View className="bg-surface rounded-card p-4 gap-2 border border-border">
-              <Text className="text-[15px] font-pretendard-semibold text-primary">
+            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
+              <Text className="text-[15px] font-pretendard-semibold text-accent">
                 {record.beans.map((bean) => bean.beanName).join(" + ")} · 총 {formatGrams(record.totalGrams)}
               </Text>
               <View className="gap-1 mt-1">
@@ -133,7 +133,7 @@ export default function RecordDetailScreen() {
           )}
 
           {record.tasteNote?.text || record.tasteNote?.rating ? (
-            <View className="bg-surface rounded-card p-4 gap-2 border border-border">
+            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
               <Text className="text-[12px] font-pretendard text-text-secondary">
                 맛 노트
               </Text>
@@ -145,12 +145,12 @@ export default function RecordDetailScreen() {
                       size={16}
                       color={
                         slot <= (record.tasteNote!.rating ?? 0)
-                          ? "#5C3D2E"
-                          : "#BBBBBB"
+                          ? "#3A2419"
+                          : "#A89A8C"
                       }
                       fill={
                         slot <= (record.tasteNote!.rating ?? 0)
-                          ? "#5C3D2E"
+                          ? "#3A2419"
                           : "transparent"
                       }
                     />
@@ -166,7 +166,7 @@ export default function RecordDetailScreen() {
           ) : null}
 
           {record.recipe ? (
-            <View className="bg-surface rounded-card p-4 gap-2 border border-border">
+            <View className="bg-bg-secondary rounded-xl p-4 gap-2 border border-divider">
               <Text className="text-[12px] font-pretendard text-text-secondary">
                 레시피
               </Text>
@@ -223,7 +223,7 @@ export default function RecordDetailScreen() {
               setActionsOpen(false);
               setEditOpen(true);
             }}
-            className="px-2 py-3.5 rounded-btn active:bg-primary-subtle"
+            className="px-2 py-3.5 rounded-lg active:bg-accent-cream"
           >
             <Text className="text-[15px] font-pretendard-medium text-text-primary">
               수정
@@ -234,7 +234,7 @@ export default function RecordDetailScreen() {
               setActionsOpen(false);
               setConfirmDelete(true);
             }}
-            className="px-2 py-3.5 rounded-btn active:bg-primary-subtle"
+            className="px-2 py-3.5 rounded-lg active:bg-accent-cream"
           >
             <Text className="text-[15px] font-pretendard-medium text-danger">
               삭제

@@ -22,7 +22,7 @@ export function NumberField({
       <Text className="text-[13px] font-pretendard-medium text-text-secondary">
         {label}
       </Text>
-      <View className="flex-row items-center h-12 rounded-input border border-border px-3">
+      <View className="flex-row items-center h-12 rounded-lg border border-divider px-3">
         <TextInput
           value={value}
           onChangeText={(next) =>
@@ -33,7 +33,7 @@ export function NumberField({
             )
           }
           placeholder={placeholder}
-          placeholderTextColor="#BBBBBB"
+          placeholderTextColor="#A89A8C"
           keyboardType={decimals ? "decimal-pad" : "number-pad"}
           className="flex-1 text-[15px] font-pretendard text-text-primary"
         />

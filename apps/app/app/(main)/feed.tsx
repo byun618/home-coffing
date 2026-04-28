@@ -49,7 +49,7 @@ export default function FeedScreen() {
   const isRefreshing = recordsQuery.isFetching && !recordsQuery.isLoading;
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
       <View className="px-5 pt-2 pb-4">
         <Text className="text-[24px] font-pretendard-bold text-text-primary">
           피드
@@ -58,7 +58,7 @@ export default function FeedScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -68,7 +68,7 @@ export default function FeedScreen() {
       >
         {recordsQuery.isLoading ? (
           <View className="py-12 items-center">
-            <ActivityIndicator color="#5C3D2E" />
+            <ActivityIndicator color="#3A2419" />
           </View>
         ) : groups.length === 0 ? (
           <View className="px-5 py-12 items-center">

@@ -111,13 +111,13 @@ export function RecipeFields({ value, onChange }: Props) {
                 }
                 className={`px-3 py-2 rounded-pill border ${
                   active
-                    ? "bg-primary border-primary"
-                    : "bg-surface border-border"
+                    ? "bg-accent border-accent"
+                    : "bg-bg-secondary border-divider"
                 }`}
               >
                 <Text
                   className={`text-[12px] font-pretendard-medium ${
-                    active ? "text-surface" : "text-text-secondary"
+                    active ? "text-text-on-dark" : "text-text-secondary"
                   }`}
                 >
                   {option.label}

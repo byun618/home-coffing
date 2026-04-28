@@ -49,7 +49,7 @@ export function BottomSheet({
         />
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="bg-bg rounded-t-modal"
+          className="bg-bg-primary rounded-t-sheet"
           style={{ maxHeight: "92%" }}
         >
           <View className="items-center pt-3 pb-1">
@@ -65,7 +65,7 @@ export function BottomSheet({
                 onPress={onClose}
                 className="w-9 h-9 items-center justify-center -mr-2"
               >
-                <X size={22} color="#1A1A1A" />
+                <X size={22} color="#2A1F18" />
               </Pressable>
             </View>
           ) : null}

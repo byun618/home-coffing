@@ -15,9 +15,9 @@ export const TextField = forwardRef<TextInput, Props>(
         </Text>
         <TextInput
           ref={ref}
-          placeholderTextColor="#BBBBBB"
-          className={`h-12 rounded-input px-3 text-[15px] font-pretendard text-text-primary border ${
-            focused ? "border-primary" : "border-border"
+          placeholderTextColor="#A89A8C"
+          className={`h-12 rounded-lg px-3 text-[15px] font-pretendard text-text-primary border ${
+            focused ? "border-accent" : "border-divider"
           }`}
           onFocus={(e) => {
             setFocused(true);

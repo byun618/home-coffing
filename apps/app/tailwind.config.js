@@ -5,26 +5,37 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#F2EDE8",
-        surface: "#FFFFFF",
-        primary: {
-          DEFAULT: "#5C3D2E",
-          light: "#8B6F5E",
-          subtle: "#F5F0EB",
+        // Background
+        bg: {
+          primary: "#FBF9F6",
+          secondary: "#F5EFE7",
+          tertiary: "#E8DFD2",
+          overlay: "#1A0F08CC",
         },
+        // Text
         text: {
-          primary: "#1A1A1A",
-          secondary: "#8C8C8C",
-          tertiary: "#BBBBBB",
+          primary: "#2A1F18",
+          secondary: "#7B6A5C",
+          tertiary: "#A89A8C",
+          "on-dark": "#FBF9F6",
         },
-        border: "#EEEEEE",
-        danger: {
-          DEFAULT: "#E54D2E",
-          subtle: "#FFF0ED",
+        // Accent
+        accent: {
+          DEFAULT: "#3A2419",
+          light: "#8B6F5C",
+          cream: "#D9C5B0",
         },
-        success: {
-          DEFAULT: "#4A9E6B",
-          subtle: "#EDF7F0",
+        // Status
+        success: "#7A8B5F",
+        warning: "#D49A6A",
+        danger: "#B55C3E",
+        info: "#8B6F5C",
+        // Divider / Border
+        divider: "#E8DFD2",
+        // Member avatar palette
+        member: {
+          self: "#3A2419",
+          wife: "#8B6F5C",
         },
       },
       fontFamily: {
@@ -34,11 +45,25 @@ module.exports = {
         "pretendard-bold": ["Pretendard-Bold"],
       },
       borderRadius: {
-        card: "16px",
-        btn: "12px",
-        input: "10px",
-        pill: "20px",
-        modal: "24px",
+        xs: "4px",
+        sm: "8px",
+        md: "12px",
+        lg: "14px",
+        xl: "16px",
+        "2xl": "18px",
+        "3xl": "20px",
+        sheet: "24px",
+        pill: "36px",
+      },
+      spacing: {
+        xs: "4px",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "32px",
+        "4xl": "40px",
       },
     },
   },
