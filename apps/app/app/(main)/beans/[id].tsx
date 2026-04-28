@@ -1,8 +1,9 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft, MoreHorizontal } from "lucide-react-native";
+import { ChevronLeft, MoreHorizontal, ShoppingCart } from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -53,6 +54,15 @@ export default function BeanDetailScreen() {
     ? (bean.remainGrams / bean.totalGrams) * 100
     : 0;
   const tone = ropTone(bean.rop.status);
+  const isUrgent = bean.rop.status === "urgent";
+
+  function onPressOrder() {
+    Linking.openURL(
+      `mailto:?subject=${encodeURIComponent("다음 원두 주문")}&body=${encodeURIComponent(
+        `다음 원두 주문 메모\n\n현재 원두: ${bean.name}\n잔량: ${bean.remainGrams}g`,
+      )}`,
+    );
+  }
 
   async function applyAction(input: {
     finishedAt?: string;
@@ -89,7 +99,7 @@ export default function BeanDetailScreen() {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: isUrgent ? 96 : 40 }}>
         <View className="px-5 gap-4">
           <View>
             <Text className="text-[24px] font-pretendard-bold text-text-primary">
@@ -102,9 +112,20 @@ export default function BeanDetailScreen() {
             ) : null}
           </View>
 
-          <View className="bg-surface rounded-card p-5 gap-3 border border-border">
+          <View
+            className={`rounded-card p-5 gap-3 ${
+              isUrgent
+                ? "bg-danger-subtle border border-danger"
+                : "bg-surface border border-border"
+            }`}
+            style={isUrgent ? { borderWidth: 1.5 } : undefined}
+          >
             <View className="flex-row items-baseline justify-between">
-              <Text className="text-[28px] font-pretendard-bold text-text-primary">
+              <Text
+                className={`text-[28px] font-pretendard-bold ${
+                  isUrgent ? "text-danger" : "text-text-primary"
+                }`}
+              >
                 {formatGrams(bean.remainGrams)}
               </Text>
               <Text className="text-[13px] font-pretendard text-text-secondary">
@@ -116,8 +137,13 @@ export default function BeanDetailScreen() {
               tone={tone === "danger" ? "danger" : "primary"}
             />
             <View className="flex-row items-center justify-between mt-1">
-              <Text className="text-[13px] font-pretendard text-text-secondary">
-                약 {bean.rop.cupsRemaining.toFixed(1)}잔 · ~{formatDays(bean.rop.daysRemaining)}
+              <Text
+                className={`text-[13px] font-pretendard ${
+                  isUrgent ? "text-danger" : "text-text-secondary"
+                }`}
+              >
+                {isUrgent ? "⚠ " : ""}약 {bean.rop.cupsRemaining.toFixed(1)}잔 · ~{formatDays(bean.rop.daysRemaining)}
+                {isUrgent ? " · 곧 떨어져요!" : ""}
               </Text>
               <Text
                 className={`text-[12px] font-pretendard-medium ${
@@ -220,6 +246,22 @@ export default function BeanDetailScreen() {
         onClose={() => setEditOpen(false)}
         mode={{ kind: "edit", bean }}
       />
+
+      {isUrgent ? (
+        <View
+          className="absolute left-0 right-0 bottom-0 px-5 pb-6 pt-3 bg-bg border-t border-border"
+        >
+          <Pressable
+            onPress={onPressOrder}
+            className="h-[52px] rounded-btn bg-danger flex-row items-center justify-center gap-2 active:opacity-80"
+          >
+            <ShoppingCart size={18} color="#FFFFFF" />
+            <Text className="text-[15px] font-pretendard-semibold text-surface">
+              다음 원두 주문하기
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
