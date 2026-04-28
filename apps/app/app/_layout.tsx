@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthGate } from "../src/components/AuthGate";
+import { ToastViewport } from "../src/components/Toast";
 import { queryClient } from "../src/lib/query-client";
 
 SplashScreen.preventAutoHideAsync();
@@ -40,6 +41,7 @@ export default function RootLayout() {
           <AuthGate>
             <Slot />
           </AuthGate>
+          <ToastViewport />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
