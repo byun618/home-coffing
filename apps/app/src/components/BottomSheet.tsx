@@ -63,8 +63,7 @@ export function BottomSheet({
       : "text-[18px] font-pretendard-bold text-text-primary";
 
   const content = (
-    <Pressable
-      onPress={Keyboard.dismiss}
+    <View
       className="bg-bg-primary"
       style={{
         borderTopLeftRadius: 24,
@@ -99,7 +98,7 @@ export function BottomSheet({
         </View>
       ) : null}
 
-      {/* body */}
+      {/* body — ScrollView가 직접 스크롤 + 드래그 시 키보드 자동 dismiss */}
       {scroll ? (
         <ScrollView
           style={{ flexGrow: 0 }}
@@ -109,6 +108,7 @@ export function BottomSheet({
             paddingBottom: cta ? 16 : 16,
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           {children}
@@ -137,7 +137,7 @@ export function BottomSheet({
           {cta}
         </View>
       ) : null}
-    </Pressable>
+    </View>
   );
 
   return (
