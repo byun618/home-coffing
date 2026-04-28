@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft, Link as LinkIcon } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,12 +19,19 @@ import { showToast } from "../../src/lib/stores/toast-store";
 
 export default function InviteCodeScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ code?: string }>();
   const refreshMe = useAuthStore((state) => state.refreshMe);
   const setActiveCafe = useAuthStore((state) => state.setActiveCafe);
   const acceptMutation = useAcceptInvitation();
 
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(params.code ?? "");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params.code && params.code !== code) {
+      setCode(params.code);
+    }
+  }, [params.code]);
 
   const isLoading = acceptMutation.isPending;
   const canSubmit = code.trim().length > 0 && !isLoading;

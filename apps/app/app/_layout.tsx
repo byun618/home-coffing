@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthGate } from "../src/components/AuthGate";
+import { DeepLinkHandler } from "../src/components/DeepLinkHandler";
 import { ToastViewport } from "../src/components/Toast";
 import { queryClient } from "../src/lib/query-client";
 
@@ -41,6 +42,7 @@ export default function RootLayout() {
           <AuthGate>
             <Slot />
           </AuthGate>
+          <DeepLinkHandler />
           <ToastViewport />
         </QueryClientProvider>
       </SafeAreaProvider>

@@ -1,4 +1,5 @@
 import * as Clipboard from "expo-clipboard";
+import * as Linking from "expo-linking";
 import { Copy, Share2 } from "lucide-react-native";
 import { Pressable, Share, Text, View } from "react-native";
 
@@ -32,9 +33,10 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
   }
 
   async function shareCode() {
+    const deepLink = Linking.createURL(`/invite/${invitation!.code}`);
     try {
       await Share.share({
-        message: `홈카페 합류 코드: ${invitation!.code} (${daysLeft}일 안에 입력해주세요)`,
+        message: `홈카페에 함께 기록해요 ☕\n\n앱이 설치된 기기라면: ${deepLink}\n코드: ${invitation!.code}\n(${daysLeft}일 안에 입력해주세요)`,
       });
     } catch {
       // 공유 취소
