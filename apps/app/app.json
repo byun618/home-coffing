@@ -33,7 +33,6 @@
       "expo-router",
       "expo-font",
       "expo-dev-client",
-      "react-native-keyboard-controller",
       "@react-native-community/datetimepicker"
     ],
     "experiments": {
