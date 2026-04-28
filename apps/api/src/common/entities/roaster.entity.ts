@@ -3,22 +3,17 @@ import {
   OptionalProps,
   PrimaryKey,
   Property,
-  ManyToOne,
 } from '@mikro-orm/core';
-import { Bean } from './bean.entity';
 
 @Entity()
-export class Consumption {
+export class Roaster {
   [OptionalProps]?: 'createdAt';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
-  @ManyToOne(() => Bean)
-  bean!: Bean;
-
-  @Property({ columnType: 'decimal(10,1)' })
-  amount!: number;
+  @Property({ length: 120, unique: true })
+  name!: string;
 
   @Property()
   createdAt: Date = new Date();
