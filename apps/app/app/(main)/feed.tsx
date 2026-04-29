@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FAB } from "../../src/components/FAB";
 import { RecordCard } from "../../src/components/RecordCard";
 import { BeanFormSheet } from "../../src/components/sheets/BeanFormSheet";
+import { QuickRecordSheet } from "../../src/components/sheets/QuickRecordSheet";
 import { useBeansList } from "../../src/lib/queries/beans";
 import { useRecordsList } from "../../src/lib/queries/records";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
@@ -84,6 +85,7 @@ export default function FeedScreen() {
   const beansQuery = useBeansList(activeCafeId);
 
   const [filter, setFilter] = useState<FilterMode>("all");
+  const [recordOpen, setRecordOpen] = useState(false);
   const [addBeanOpen, setAddBeanOpen] = useState(false);
 
   const memberships = user?.memberships ?? [];
@@ -108,7 +110,7 @@ export default function FeedScreen() {
       setAddBeanOpen(true);
       return;
     }
-    router.push("/records/new");
+    setRecordOpen(true);
   }
 
   return (
@@ -177,7 +179,7 @@ export default function FeedScreen() {
         ) : filteredRecords.length === 0 ? (
           <EmptyState
             isFiltered={filter !== "all"}
-            onPressCta={() => router.push("/records/new")}
+            onPressCta={() => setRecordOpen(true)}
           />
         ) : (
           <View style={{ paddingHorizontal: 24 }} className="gap-3.5">
@@ -205,6 +207,15 @@ export default function FeedScreen() {
       </ScrollView>
 
       <FAB onPress={onPressFab} />
+
+      {activeCafeId !== null ? (
+        <QuickRecordSheet
+          visible={recordOpen}
+          onClose={() => setRecordOpen(false)}
+          cafeId={activeCafeId}
+          beans={beansQuery.data ?? []}
+        />
+      ) : null}
 
       {activeCafeId !== null ? (
         <BeanFormSheet

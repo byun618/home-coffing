@@ -54,7 +54,7 @@ export function DateField({ label, value, onChange, optional }: Props) {
   }
 
   return (
-    <View className="flex-1" style={{ gap: 8 }}>
+    <View style={{ gap: 8 }}>
       <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
         {label}
         {optional && <Text className="text-text-tertiary"> · 선택</Text>}

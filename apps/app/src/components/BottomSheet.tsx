@@ -3,10 +3,10 @@ import { ReactNode } from "react";
 import {
   Modal,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 interface Props {
   visible: boolean;
@@ -19,12 +19,6 @@ interface Props {
   cta?: ReactNode;
 }
 
-/**
- * 단순 RN Modal 기반 바텀시트.
- *
- * ⚠ 입력 필드가 있는 폼은 풀스크린 라우트로 처리. 본 시트는 picker / action menu / 표시 전용 등
- * 키보드 핸들링이 필요 없는 케이스에만 사용.
- */
 export function BottomSheet({
   visible,
   onClose,
@@ -93,7 +87,7 @@ export function BottomSheet({
           ) : null}
 
           {scroll ? (
-            <ScrollView
+            <KeyboardAwareScrollView
               style={{ flexGrow: 0 }}
               contentContainerStyle={{
                 paddingHorizontal: 24,
@@ -102,9 +96,10 @@ export function BottomSheet({
               }}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              bottomOffset={24}
             >
               {children}
-            </ScrollView>
+            </KeyboardAwareScrollView>
           ) : (
             <View
               style={{
