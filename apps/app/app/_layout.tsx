@@ -55,6 +55,7 @@ export default function RootLayout() {
                 <Stack.Screen name="records/[id]" />
                 <Stack.Screen name="invite-code" />
                 <Stack.Screen name="account" />
+                <Stack.Screen name="cafe-settings" />
                 <Stack.Screen name="notifications" />
               </Stack>
             </AuthGate>

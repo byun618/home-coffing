@@ -1,6 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { Copy, Share2 } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import { Pressable, Share, Text, View } from "react-native";
 
 import { showToast } from "../../lib/stores/toast-store";
@@ -23,20 +24,27 @@ function daysUntil(iso: string): number {
 }
 
 export function InvitationSheet({ visible, onClose, invitation }: Props) {
-  if (!invitation) return null;
-  const display = shortCode(invitation.code);
-  const daysLeft = daysUntil(invitation.expiresAt);
+  // 닫힘 애니메이션 동안 invitation 표시 유지
+  const [cached, setCached] = useState<Invitation | null>(invitation);
+
+  useEffect(() => {
+    if (invitation) setCached(invitation);
+  }, [invitation]);
+
+  if (!cached) return null;
+  const display = shortCode(cached.code);
+  const daysLeft = daysUntil(cached.expiresAt);
 
   async function copyCode() {
-    await Clipboard.setStringAsync(invitation!.code);
+    await Clipboard.setStringAsync(cached!.code);
     showToast("복사됐어요");
   }
 
   async function shareCode() {
-    const deepLink = Linking.createURL(`/invite/${invitation!.code}`);
+    const deepLink = Linking.createURL(`/invite/${cached!.code}`);
     try {
       await Share.share({
-        message: `홈카페에 함께 기록해요 ☕\n\n앱이 설치된 기기라면: ${deepLink}\n코드: ${invitation!.code}\n(${daysLeft}일 안에 입력해주세요)`,
+        message: `홈카페에 함께 기록해요 ☕\n\n앱이 설치된 기기라면: ${deepLink}\n코드: ${cached!.code}\n(${daysLeft}일 안에 입력해주세요)`,
       });
     } catch {
       // 공유 취소
@@ -44,7 +52,7 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="가족 초대하기">
+    <BottomSheet visible={visible} onClose={onClose} title="멤버 초대하기">
       <View className="gap-4 pt-2 pb-4">
         <Text className="text-[14px] font-pretendard text-text-secondary">
           초대 코드를 공유해 함께 기록해요

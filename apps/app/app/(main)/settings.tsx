@@ -13,7 +13,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MemberAvatar } from "../../src/components/MemberAvatar";
 import { SettingGroup, SettingRow } from "../../src/components/SettingRow";
-import { CafeSettingsSheet } from "../../src/components/sheets/CafeSettingsSheet";
 import { CafeSwitcherSheet } from "../../src/components/sheets/CafeSwitcherSheet";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 
@@ -25,7 +24,6 @@ export default function SettingsScreen() {
   const logout = useAuthStore((state) => state.logout);
   const activeCafeId = useAuthStore((state) => state.activeCafeId);
 
-  const [cafeSheetOpen, setCafeSheetOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const cafe = user?.memberships.find((m) => m.cafeId === activeCafeId);
@@ -82,7 +80,7 @@ export default function SettingsScreen() {
             홈카페
           </Text>
           <Pressable
-            onPress={() => setCafeSheetOpen(true)}
+            onPress={() => router.push("/cafe-settings")}
             className="bg-bg-secondary active:opacity-80"
             style={{ borderRadius: 16, padding: 18, gap: 14 }}
           >
@@ -169,24 +167,6 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
-
-      {user && activeCafeId !== null ? (
-        <CafeSettingsSheet
-          visible={cafeSheetOpen}
-          onClose={() => setCafeSheetOpen(false)}
-          cafeId={activeCafeId}
-          currentUserId={user.id}
-          onLeftCafe={() => {
-            const other = memberships.find((m) => m.cafeId !== activeCafeId);
-            if (other) {
-              useAuthStore.getState().setActiveCafe(other.cafeId);
-              useAuthStore.getState().refreshMe();
-            } else {
-              logout();
-            }
-          }}
-        />
-      ) : null}
 
       <CafeSwitcherSheet
         visible={switcherOpen}

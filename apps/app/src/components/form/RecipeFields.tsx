@@ -129,40 +129,48 @@ export function RecipeFields({ value, onChange }: Props) {
       </View>
 
       <View className="flex-row gap-3">
-        <NumberField
-          label="물 온도"
-          value={value.waterTempCelsius}
-          onChangeText={(v) => set("waterTempCelsius", v)}
-          placeholder="92"
-          unit="°C"
-          decimals
-        />
-        <NumberField
-          label="얼음"
-          value={value.iceGrams}
-          onChangeText={(v) => set("iceGrams", v)}
-          placeholder="0"
-          unit="g"
-          decimals
-        />
+        <View className="flex-1">
+          <NumberField
+            label="물 온도"
+            value={value.waterTempCelsius}
+            onChangeText={(v) => set("waterTempCelsius", v)}
+            placeholder="92"
+            unit="°C"
+            decimals
+          />
+        </View>
+        <View className="flex-1">
+          <NumberField
+            label="얼음"
+            value={value.iceGrams}
+            onChangeText={(v) => set("iceGrams", v)}
+            placeholder="0"
+            unit="g"
+            decimals
+          />
+        </View>
       </View>
 
       <View className="flex-row gap-3">
-        <NumberField
-          label="추출량"
-          value={value.totalYieldGrams}
-          onChangeText={(v) => set("totalYieldGrams", v)}
-          placeholder="240"
-          unit="g"
-          decimals
-        />
-        <NumberField
-          label="추출 시간"
-          value={value.totalTimeSeconds}
-          onChangeText={(v) => set("totalTimeSeconds", v)}
-          placeholder="180"
-          unit="초"
-        />
+        <View className="flex-1">
+          <NumberField
+            label="추출량"
+            value={value.totalYieldGrams}
+            onChangeText={(v) => set("totalYieldGrams", v)}
+            placeholder="240"
+            unit="g"
+            decimals
+          />
+        </View>
+        <View className="flex-1">
+          <NumberField
+            label="추출 시간"
+            value={value.totalTimeSeconds}
+            onChangeText={(v) => set("totalTimeSeconds", v)}
+            placeholder="180"
+            unit="초"
+          />
+        </View>
       </View>
 
       <TextField

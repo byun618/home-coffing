@@ -214,19 +214,23 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
           optional
         />
         <View className="flex-row gap-3">
-          <NumberField
-            label="디개싱 일수"
-            value={form.degassingDays}
-            onChangeText={(v) => set("degassingDays", v)}
-            unit="일"
-          />
-          <NumberField
-            label="하루 잔수"
-            value={form.cupsPerDay}
-            onChangeText={(v) => set("cupsPerDay", v)}
-            unit="잔"
-            decimals
-          />
+          <View className="flex-1">
+            <NumberField
+              label="디개싱 일수"
+              value={form.degassingDays}
+              onChangeText={(v) => set("degassingDays", v)}
+              unit="일"
+            />
+          </View>
+          <View className="flex-1">
+            <NumberField
+              label="하루 잔수"
+              value={form.cupsPerDay}
+              onChangeText={(v) => set("cupsPerDay", v)}
+              unit="잔"
+              decimals
+            />
+          </View>
         </View>
         <NumberField
           label="1잔 용량"

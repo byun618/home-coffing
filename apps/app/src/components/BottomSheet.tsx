@@ -1,6 +1,9 @@
 import { X } from "lucide-react-native";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Dimensions,
+  Easing,
   Modal,
   Pressable,
   Text,
@@ -19,6 +22,8 @@ interface Props {
   cta?: ReactNode;
 }
 
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+
 export function BottomSheet({
   visible,
   onClose,
@@ -33,28 +38,86 @@ export function BottomSheet({
       ? "text-[22px] font-pretendard-bold text-text-primary"
       : "text-[18px] font-pretendard-bold text-text-primary";
 
+  const [mounted, setMounted] = useState(visible);
+  const [measured, setMeasured] = useState(false);
+  const panelHeightRef = useRef(SCREEN_HEIGHT);
+  const slide = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) setMounted(true);
+    if (!measured) return;
+
+    if (visible) {
+      slide.setValue(panelHeightRef.current);
+      Animated.parallel([
+        Animated.timing(slide, {
+          toValue: 0,
+          duration: 320,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slide, {
+          toValue: panelHeightRef.current,
+          duration: 260,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fade, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => {
+        if (finished) setMounted(false);
+      });
+    }
+  }, [visible, measured, slide, fade]);
+
   return (
     <Modal
-      visible={visible}
+      visible={mounted}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
     >
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        <Pressable
+        <Animated.View
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
+            opacity: fade,
           }}
-          className="bg-bg-overlay"
-          onPress={onClose}
-        />
+        >
+          <Pressable
+            className="bg-bg-overlay"
+            style={{ flex: 1 }}
+            onPress={onClose}
+          />
+        </Animated.View>
 
-        <View
+        <Animated.View
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h <= 0) return;
+            panelHeightRef.current = h;
+            if (!measured) {
+              slide.setValue(h);
+              setMeasured(true);
+            }
+          }}
           className="bg-bg-primary"
           style={{
             borderTopLeftRadius: 24,
@@ -62,6 +125,7 @@ export function BottomSheet({
             maxHeight: "92%",
             paddingTop: 14,
             paddingBottom: cta ? 0 : 44,
+            transform: [{ translateY: slide }],
           }}
         >
           <View className="items-center" style={{ paddingBottom: 4 }}>
@@ -123,7 +187,7 @@ export function BottomSheet({
               {cta}
             </View>
           ) : null}
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

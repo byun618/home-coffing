@@ -115,6 +115,25 @@ export class CafeService {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
     }
 
+    // 활성 초대(미수락 + 미만료) 있으면 재사용
+    const active = await this.em.findOne(
+      Invitation,
+      {
+        cafe: cafeId,
+        acceptedAt: null,
+        expiresAt: { $gt: new Date() },
+      },
+      { orderBy: { createdAt: 'DESC' } },
+    );
+    if (active) {
+      return {
+        id: active.id,
+        code: active.code,
+        expiresAt: active.expiresAt,
+        invitedBy: active.invitedBy.id,
+      };
+    }
+
     const invitation = this.em.create(Invitation, {
       cafe,
       invitedBy,

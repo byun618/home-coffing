@@ -1,4 +1,6 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
@@ -81,6 +83,36 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
       ...prev,
       { beanId: next?.id ?? 0, grams: "" },
     ]);
+  }
+
+  function openBrewedAtPicker() {
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: brewedAt,
+        mode: "date",
+        onChange: (dateEvent, dateSelected) => {
+          if (dateEvent.type !== "set" || !dateSelected) return;
+          DateTimePickerAndroid.open({
+            value: dateSelected,
+            mode: "time",
+            is24Hour: true,
+            onChange: (timeEvent, timeSelected) => {
+              if (timeEvent.type !== "set" || !timeSelected) return;
+              const merged = new Date(dateSelected);
+              merged.setHours(
+                timeSelected.getHours(),
+                timeSelected.getMinutes(),
+                0,
+                0,
+              );
+              setBrewedAt(merged);
+            },
+          });
+        },
+      });
+    } else {
+      setShowPicker(true);
+    }
   }
 
   const isDirty =
@@ -269,7 +301,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
             <Pressable
               onPress={() => {
                 setTimeMode("custom");
-                setShowPicker(true);
+                openBrewedAtPicker();
               }}
               className={`flex-1 h-11 items-center justify-center rounded-lg border ${
                 timeMode === "custom"
@@ -290,14 +322,14 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
               </Text>
             </Pressable>
           </View>
-          {showPicker ? (
+          {showPicker && Platform.OS === "ios" ? (
             <DateTimePicker
               value={brewedAt}
               mode="datetime"
-              display={Platform.OS === "ios" ? "inline" : "default"}
+              display="inline"
               onChange={(event, selected) => {
-                setShowPicker(Platform.OS === "ios");
                 if (event.type === "set" && selected) setBrewedAt(selected);
+                else setShowPicker(false);
               }}
             />
           ) : null}

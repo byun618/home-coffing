@@ -1,7 +1,9 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Modal, Platform, Pressable, Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
@@ -94,6 +96,36 @@ export function RecordEditSheet({
     const usedIds = new Set(entries.map((entry) => entry.beanId));
     const next = beans.find((bean) => !usedIds.has(bean.id));
     setEntries((prev) => [...prev, { beanId: next?.id ?? 0, grams: "" }]);
+  }
+
+  function openBrewedAtPicker() {
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: brewedAt,
+        mode: "date",
+        onChange: (dateEvent, dateSelected) => {
+          if (dateEvent.type !== "set" || !dateSelected) return;
+          DateTimePickerAndroid.open({
+            value: dateSelected,
+            mode: "time",
+            is24Hour: true,
+            onChange: (timeEvent, timeSelected) => {
+              if (timeEvent.type !== "set" || !timeSelected) return;
+              const merged = new Date(dateSelected);
+              merged.setHours(
+                timeSelected.getHours(),
+                timeSelected.getMinutes(),
+                0,
+                0,
+              );
+              setBrewedAt(merged);
+            },
+          });
+        },
+      });
+    } else {
+      setShowPicker(true);
+    }
   }
 
   // 활성 리스트에 없는 record 참조 원두도 picker에 표시
@@ -229,7 +261,7 @@ export function RecordEditSheet({
             추출 시각
           </Text>
           <Pressable
-            onPress={() => setShowPicker(true)}
+            onPress={openBrewedAtPicker}
             className="h-12 rounded-lg border border-divider px-3 justify-center"
           >
             <Text className="text-[14px] font-pretendard text-text-primary">
@@ -240,14 +272,14 @@ export function RecordEditSheet({
               {String(brewedAt.getMinutes()).padStart(2, "0")}
             </Text>
           </Pressable>
-          {showPicker ? (
+          {showPicker && Platform.OS === "ios" ? (
             <DateTimePicker
               value={brewedAt}
               mode="datetime"
-              display={Platform.OS === "ios" ? "inline" : "default"}
+              display="inline"
               onChange={(event, selected) => {
-                setShowPicker(Platform.OS === "ios");
                 if (event.type === "set" && selected) setBrewedAt(selected);
+                else setShowPicker(false);
               }}
             />
           ) : null}
