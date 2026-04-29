@@ -18,9 +18,10 @@ export class InvitationService {
     userId: number,
   ): Promise<AcceptInvitationResponse> {
     return this.em.transactional(async (em) => {
+      const normalized = code.trim().toUpperCase();
       const invitation = await em.findOne(
         Invitation,
-        { code },
+        { code: normalized },
         { populate: ['cafe', 'invitedBy'] },
       );
       if (!invitation) {

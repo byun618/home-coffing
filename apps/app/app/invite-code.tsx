@@ -102,10 +102,13 @@ export default function InviteCodeScreen() {
           <TextField
             label="코드"
             value={code}
-            onChangeText={setCode}
-            placeholder="BREW-XXXX 또는 전체 코드"
+            onChangeText={(v) =>
+              setCode(v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))
+            }
+            placeholder="6자리 코드"
             autoCapitalize="characters"
             autoCorrect={false}
+            maxLength={6}
           />
 
           <View

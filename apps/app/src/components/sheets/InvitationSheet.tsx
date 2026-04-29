@@ -14,10 +14,6 @@ interface Props {
   invitation: Invitation | null;
 }
 
-function shortCode(uuid: string): string {
-  return `BREW-${uuid.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-}
-
 function daysUntil(iso: string): number {
   const ms = new Date(iso).getTime() - Date.now();
   return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
@@ -32,7 +28,6 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
   }, [invitation]);
 
   if (!cached) return null;
-  const display = shortCode(cached.code);
   const daysLeft = daysUntil(cached.expiresAt);
 
   async function copyCode() {
@@ -63,10 +58,10 @@ export function InvitationSheet({ visible, onClose, invitation }: Props) {
             초대 코드
           </Text>
           <Text
-            className="text-[28px] font-pretendard-bold text-text-on-dark"
-            style={{ letterSpacing: 4 }}
+            className="text-[32px] font-pretendard-bold text-text-on-dark"
+            style={{ letterSpacing: 6 }}
           >
-            {display}
+            {cached.code}
           </Text>
           <Text className="text-[11px] font-pretendard text-text-on-dark/70 mt-1">
             {daysLeft}일 후 만료

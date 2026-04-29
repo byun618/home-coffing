@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/mysql';
-import { v4 as uuidv4 } from 'uuid';
+import { randomInt } from 'crypto';
 import {
   Cafe,
   CafeUser,
@@ -12,6 +12,20 @@ import { ApiError, Errors } from '../common/exceptions/api-error.exception';
 import { CafeResponse, InvitationResponse, UpdateCafeDto } from './dto';
 
 const INVITATION_TTL_DAYS = 7;
+// 혼동되는 0/O/1/I 제외, 32자
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 6;
+const CODE_MAX_RETRIES = 5;
+
+function generateShortCode(): string {
+  let code = '';
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    code += CODE_ALPHABET[randomInt(0, CODE_ALPHABET.length)];
+  }
+  return code;
+}
+
+const SHORT_CODE_REGEX = new RegExp(`^[${CODE_ALPHABET}]{${CODE_LENGTH}}$`);
 
 @Injectable()
 export class CafeService {
@@ -115,7 +129,7 @@ export class CafeService {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
     }
 
-    // 활성 초대(미수락 + 미만료) 있으면 재사용
+    // 활성 초대(미수락 + 미만료 + 신 형식) 있으면 재사용. 옛 UUID 형식은 무시.
     const active = await this.em.findOne(
       Invitation,
       {
@@ -125,7 +139,7 @@ export class CafeService {
       },
       { orderBy: { createdAt: 'DESC' } },
     );
-    if (active) {
+    if (active && SHORT_CODE_REGEX.test(active.code)) {
       return {
         id: active.id,
         code: active.code,
@@ -134,10 +148,17 @@ export class CafeService {
       };
     }
 
+    let code = generateShortCode();
+    for (let attempt = 0; attempt < CODE_MAX_RETRIES; attempt++) {
+      const collision = await this.em.findOne(Invitation, { code });
+      if (!collision) break;
+      code = generateShortCode();
+    }
+
     const invitation = this.em.create(Invitation, {
       cafe,
       invitedBy,
-      code: uuidv4(),
+      code,
       expiresAt: new Date(
         Date.now() + INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000,
       ),
