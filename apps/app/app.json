@@ -20,7 +20,7 @@
       "package": "com.byun618.homecoffing",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F2EDE8"
+        "backgroundColor": "#3A2419"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
