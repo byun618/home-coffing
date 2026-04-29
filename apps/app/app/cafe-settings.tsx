@@ -9,6 +9,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -115,6 +116,12 @@ export default function CafeSettingsScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={cafeQuery.isFetching && !cafeQuery.isLoading}
+            onRefresh={() => cafeQuery.refetch()}
+          />
+        }
       >
         {/* Hero */}
         <View

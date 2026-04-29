@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -188,6 +189,18 @@ export default function BeanDetailScreen() {
           paddingHorizontal: 24,
           gap: 24,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={
+              (beanQuery.isFetching && !beanQuery.isLoading) ||
+              (recordsQuery.isFetching && !recordsQuery.isLoading)
+            }
+            onRefresh={() => {
+              beanQuery.refetch();
+              recordsQuery.refetch();
+            }}
+          />
+        }
       >
         {/* bean name */}
         <View>
@@ -264,19 +277,6 @@ export default function BeanDetailScreen() {
           />
           <InfoRow label="1잔 용량" value={`${bean.gramsPerCup}g`} />
           <InfoRow label="하루 잔수" value={`${bean.cupsPerDay}잔`} />
-          <View className="flex-row items-center justify-between">
-            <Text className="text-[13px] font-pretendard text-text-secondary">
-              ROP 자동 알림
-            </Text>
-            <Text
-              className="text-[13px] font-pretendard-semibold"
-              style={{
-                color: bean.autoRopEnabled ? "#7A8B5F" : "#A89A8C",
-              }}
-            >
-              {bean.autoRopEnabled ? "ON" : "OFF"}
-            </Text>
-          </View>
         </View>
 
         {/* records */}

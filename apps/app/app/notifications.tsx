@@ -3,6 +3,7 @@ import { ArrowLeft, Bell } from "lucide-react-native";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -38,6 +39,12 @@ export default function NotificationsScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={query.isFetching && !query.isLoading}
+            onRefresh={() => query.refetch()}
+          />
+        }
       >
         {query.isLoading ? (
           <View className="py-12 items-center">

@@ -9,6 +9,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -131,6 +132,12 @@ export default function RecordDetailScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={recordQuery.isFetching && !recordQuery.isLoading}
+            onRefresh={() => recordQuery.refetch()}
+          />
+        }
       >
         {/* Header — memo as 24/700 + author meta */}
         <View
