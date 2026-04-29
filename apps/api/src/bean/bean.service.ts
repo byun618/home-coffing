@@ -89,6 +89,12 @@ export class BeanService {
       bean.roaster = roaster;
     }
 
+    // totalGrams 변경 시 remainGrams도 같은 delta만큼 조정 (음수 방지)
+    if (dto.totalGrams !== undefined && dto.totalGrams !== bean.totalGrams) {
+      const delta = dto.totalGrams - bean.totalGrams;
+      bean.remainGrams = Math.max(0, bean.remainGrams + delta);
+    }
+
     const updatable: Array<keyof UpdateBeanDto> = [
       'name',
       'origin',
