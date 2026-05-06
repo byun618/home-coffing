@@ -2,24 +2,20 @@ import {
   Entity,
   ManyToOne,
   PrimaryKey,
-  Property,
   Unique,
 } from '@mikro-orm/core';
 import { Record as RecordEntity } from './record.entity';
-import { CafeBean } from './cafe-bean.entity';
+import { CafeEquipment } from './cafe-equipment.entity';
 
 @Entity()
-@Unique({ properties: ['record', 'cafeBean'] })
-export class RecordBean {
+@Unique({ properties: ['record', 'cafeEquipment'] })
+export class RecordEquipment {
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
   @ManyToOne(() => RecordEntity, { deleteRule: 'cascade' })
   record!: RecordEntity;
 
-  @ManyToOne(() => CafeBean, { deleteRule: 'restrict' })
-  cafeBean!: CafeBean;
-
-  @Property({ columnType: 'decimal(10,1)' })
-  grams!: number;
+  @ManyToOne(() => CafeEquipment)
+  cafeEquipment!: CafeEquipment;
 }

@@ -11,6 +11,7 @@
         "buildType": "apk"
       },
       "env": {
+        "APP_VARIANT": "development",
         "EXPO_PUBLIC_API_URL": "http://192.168.35.89:3001/api"
       }
     },
@@ -20,6 +21,7 @@
         "buildType": "apk"
       },
       "env": {
+        "APP_VARIANT": "preview",
         "EXPO_PUBLIC_API_URL": "https://coffee-api.chaco.cloud/api"
       }
     },

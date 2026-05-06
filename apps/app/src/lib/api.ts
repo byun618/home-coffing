@@ -1,10 +1,22 @@
+import Constants from "expo-constants";
 import { clearTokens, getTokens, saveTokens } from "./secure-storage";
 
-const BASE = process.env.EXPO_PUBLIC_API_URL;
+function resolveBaseUrl(): string | undefined {
+  if (__DEV__) {
+    const hostUri = Constants.expoConfig?.hostUri;
+    const host = hostUri?.split(":")[0];
+    if (host) {
+      return `http://${host}:3001/api`;
+    }
+  }
+  return process.env.EXPO_PUBLIC_API_URL;
+}
+
+const BASE = resolveBaseUrl();
 
 if (!BASE) {
   // eslint-disable-next-line no-console
-  console.warn("EXPO_PUBLIC_API_URL is not set. Check apps/app/.env");
+  console.warn("API base URL not resolved. Check EXPO_PUBLIC_API_URL or metro host.");
 }
 
 export interface ApiErrorBody {

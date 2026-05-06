@@ -4,13 +4,15 @@ export { Cafe } from './cafe.entity';
 export { CafeUser, CafeUserRole } from './cafe-user.entity';
 export { Invitation } from './invitation.entity';
 export { Roaster } from './roaster.entity';
-export { Bean, BeanFinishedReason } from './bean.entity';
-export {
-  Record,
-  type RecipeJson,
-  type RecipeStep,
-  type TasteNoteJson,
-} from './record.entity';
+export { Bean } from './bean.entity';
+export { CafeBean, BeanFinishedReason } from './cafe-bean.entity';
+export { Record } from './record.entity';
 export { RecordBean } from './record-bean.entity';
+export { RecordEquipment } from './record-equipment.entity';
+export { TasteNote } from './taste-note.entity';
+export { Recipe } from './recipe.entity';
 export { Equipment, EquipmentType } from './equipment.entity';
+export { CafeEquipment } from './cafe-equipment.entity';
 export { DeviceToken, DevicePlatform } from './device-token.entity';
+export { EntitySource, RecipeMethod } from './enums';
+export type { RecipeParamsJson, RecipeStep } from '../types/recipe-params';

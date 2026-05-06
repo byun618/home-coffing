@@ -11,7 +11,12 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { RecipeJson, TasteNoteJson } from '../common/entities';
+import type { RecipeParamsJson } from '../common/types/recipe-params';
+
+export interface TasteNoteInput {
+  text: string;
+  rating?: number;
+}
 
 export class RecordBeanDto {
   @IsInt()
@@ -44,10 +49,10 @@ export class CreateRecordDto {
   memo?: string;
 
   @IsOptional()
-  recipe?: RecipeJson;
+  recipe?: RecipeParamsJson;
 
   @IsOptional()
-  tasteNote?: TasteNoteJson;
+  tasteNote?: TasteNoteInput;
 }
 
 export class UpdateRecordDto {
@@ -74,10 +79,10 @@ export class UpdateRecordDto {
   memo?: string;
 
   @IsOptional()
-  recipe?: RecipeJson;
+  recipe?: RecipeParamsJson;
 
   @IsOptional()
-  tasteNote?: TasteNoteJson;
+  tasteNote?: TasteNoteInput | null;
 }
 
 export interface RecordResponse {
@@ -93,8 +98,8 @@ export interface RecordResponse {
   brewedAt: Date;
   loggedAt: Date;
   memo: string | null;
-  recipe: RecipeJson | null;
-  tasteNote: TasteNoteJson | null;
+  recipe: RecipeParamsJson | null;
+  tasteNote: { text: string; rating?: number } | null;
   beans: Array<{
     beanId: number;
     beanName: string;

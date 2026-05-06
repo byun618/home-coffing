@@ -2,9 +2,12 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/mysql';
 import {
   Bean,
+  CafeBean,
   CafeUser,
+  EntitySource,
   RecordBean,
   Roaster,
+  User,
 } from '../common/entities';
 import { ApiError, Errors } from '../common/exceptions/api-error.exception';
 import {
@@ -24,121 +27,183 @@ export class BeanService {
   constructor(private readonly em: EntityManager) {}
 
   async listActiveBeans(cafeId: number): Promise<BeanResponse[]> {
-    const beans = await this.em.find(
-      Bean,
+    const cafeBeans = await this.em.find(
+      CafeBean,
       {
         cafe: cafeId,
         archivedAt: null,
         finishedAt: null,
       },
-      { populate: ['roaster'], orderBy: { createdAt: 'DESC' } },
+      {
+        populate: ['bean', 'bean.roaster'],
+        orderBy: { createdAt: 'DESC' },
+      },
     );
 
-    return Promise.all(beans.map((bean) => this.toResponse(bean)));
+    return Promise.all(cafeBeans.map((cafeBean) => this.toResponse(cafeBean)));
   }
 
-  async getBean(beanId: number, userId: number): Promise<BeanResponse> {
-    const bean = await this.findBeanWithMembership(beanId, userId);
-    return this.toResponse(bean);
+  async getBean(cafeBeanId: number, userId: number): Promise<BeanResponse> {
+    const cafeBean = await this.findCafeBeanWithMembership(cafeBeanId, userId);
+    return this.toResponse(cafeBean);
   }
 
   async createBean(
     cafeId: number,
+    userId: number,
     dto: CreateBeanDto,
   ): Promise<BeanResponse> {
-    const roaster = dto.roasterId
-      ? await this.em.findOne(Roaster, { id: dto.roasterId })
-      : null;
-    if (dto.roasterId && !roaster) {
-      throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
-    }
+    return this.em.transactional(async (em) => {
+      const roaster = dto.roasterId
+        ? await em.findOne(Roaster, { id: dto.roasterId })
+        : null;
+      if (dto.roasterId && !roaster) {
+        throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
+      }
 
-    const bean = this.em.create(Bean, {
-      cafe: cafeId,
-      name: dto.name,
-      origin: dto.origin ?? null,
-      roaster,
-      totalGrams: dto.totalGrams,
-      remainGrams: dto.totalGrams,
-      orderedAt: dto.orderedAt,
-      roastedOn: dto.roastedOn,
-      arrivedAt: dto.arrivedAt ?? null,
-      degassingDays: dto.degassingDays ?? 7,
-      cupsPerDay: dto.cupsPerDay ?? 2,
-      gramsPerCup: dto.gramsPerCup ?? 20,
-      autoRopEnabled: dto.autoRopEnabled ?? true,
+      const createdBy = await em.findOne(User, { id: userId });
+
+      const bean = em.create(Bean, {
+        name: dto.name,
+        origin: dto.origin ?? null,
+        roaster,
+        source: EntitySource.CAFE,
+        createdBy,
+      });
+      em.persist(bean);
+
+      const cafeBean = em.create(CafeBean, {
+        cafe: cafeId,
+        bean,
+        totalGrams: dto.totalGrams,
+        remainGrams: dto.totalGrams,
+        orderedAt: dto.orderedAt,
+        roastedOn: dto.roastedOn,
+        arrivedAt: dto.arrivedAt ?? null,
+        degassingDays: dto.degassingDays ?? 7,
+        cupsPerDay: dto.cupsPerDay ?? 2,
+        gramsPerCup: dto.gramsPerCup ?? 20,
+        autoRopEnabled: dto.autoRopEnabled ?? true,
+      });
+      em.persist(cafeBean);
+
+      await em.flush();
+      return this.toResponse(cafeBean);
     });
-    this.em.persist(bean);
-    await this.em.flush();
-
-    return this.toResponse(bean);
   }
 
   async updateBean(
-    beanId: number,
+    cafeBeanId: number,
     userId: number,
     dto: UpdateBeanDto,
   ): Promise<BeanResponse> {
-    const bean = await this.findBeanWithMembership(beanId, userId);
+    return this.em.transactional(async (em) => {
+      const cafeBean = await this.findCafeBeanWithMembership(
+        cafeBeanId,
+        userId,
+        em,
+      );
 
-    if (dto.roasterId !== undefined) {
-      const roaster = await this.em.findOne(Roaster, { id: dto.roasterId });
-      if (!roaster) {
-        throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
+      // dev-plan 4-1: dto.name 변경 시 새 Bean 글로벌 row 생성 + CafeBean.bean FK 재배선.
+      // origin/roaster는 기존 Bean에 in-place 적용 (002 단계에선 글로벌 Bean을 1:1로 사용 — 공유 우려 없음).
+      const renamedToNewBean =
+        dto.name !== undefined && dto.name !== cafeBean.bean.name;
+
+      if (renamedToNewBean) {
+        const createdBy = await em.findOne(User, { id: userId });
+        const newBean = em.create(Bean, {
+          name: dto.name!,
+          origin:
+            dto.origin !== undefined ? dto.origin : cafeBean.bean.origin,
+          roaster:
+            dto.roasterId !== undefined
+              ? await this.resolveRoaster(em, dto.roasterId)
+              : cafeBean.bean.roaster,
+          source: EntitySource.CAFE,
+          createdBy,
+        });
+        em.persist(newBean);
+        cafeBean.bean = newBean;
+      } else {
+        if (dto.origin !== undefined) {
+          cafeBean.bean.origin = dto.origin;
+        }
+        if (dto.roasterId !== undefined) {
+          cafeBean.bean.roaster = await this.resolveRoaster(
+            em,
+            dto.roasterId,
+          );
+        }
       }
-      bean.roaster = roaster;
-    }
 
-    // totalGrams 변경 시 remainGrams도 같은 delta만큼 조정 (음수 방지)
-    if (dto.totalGrams !== undefined && dto.totalGrams !== bean.totalGrams) {
-      const delta = dto.totalGrams - bean.totalGrams;
-      bean.remainGrams = Math.max(0, bean.remainGrams + delta);
-    }
+      // totalGrams 변경 시 remainGrams도 같은 delta만큼 조정 (음수 방지)
+      if (
+        dto.totalGrams !== undefined &&
+        Number(dto.totalGrams) !== Number(cafeBean.totalGrams)
+      ) {
+        const delta = Number(dto.totalGrams) - Number(cafeBean.totalGrams);
+        cafeBean.remainGrams = Math.max(
+          0,
+          Number(cafeBean.remainGrams) + delta,
+        );
+      }
 
-    const updatable: Array<keyof UpdateBeanDto> = [
-      'name',
-      'origin',
-      'totalGrams',
-      'orderedAt',
-      'roastedOn',
-      'arrivedAt',
-      'degassingDays',
-      'cupsPerDay',
-      'gramsPerCup',
-      'autoRopEnabled',
-      'finishedAt',
-      'finishedReason',
-      'archivedAt',
-    ];
-    for (const key of updatable) {
-      if (dto[key] === undefined) continue;
-      Object.assign(bean, { [key]: dto[key] });
-    }
+      const updatable: Array<keyof UpdateBeanDto> = [
+        'totalGrams',
+        'orderedAt',
+        'roastedOn',
+        'arrivedAt',
+        'degassingDays',
+        'cupsPerDay',
+        'gramsPerCup',
+        'autoRopEnabled',
+        'finishedAt',
+        'finishedReason',
+        'archivedAt',
+      ];
+      for (const key of updatable) {
+        if (dto[key] === undefined) continue;
+        Object.assign(cafeBean, { [key]: dto[key] });
+      }
 
-    await this.em.flush();
-    return this.toResponse(bean);
+      await em.flush();
+      return this.toResponse(cafeBean);
+    });
   }
 
-  private async findBeanWithMembership(
-    beanId: number,
-    userId: number,
-  ): Promise<Bean> {
-    const bean = await this.em.findOne(
-      Bean,
-      { id: beanId },
-      { populate: ['cafe', 'roaster'] },
-    );
-    if (!bean) {
+  private async resolveRoaster(
+    em: EntityManager,
+    roasterId: number | null | undefined,
+  ): Promise<Roaster | null> {
+    if (roasterId === null || roasterId === undefined) return null;
+    const roaster = await em.findOne(Roaster, { id: roasterId });
+    if (!roaster) {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
     }
-    const membership = await this.em.findOne(CafeUser, {
-      cafe: bean.cafe.id,
+    return roaster;
+  }
+
+  private async findCafeBeanWithMembership(
+    cafeBeanId: number,
+    userId: number,
+    em: EntityManager = this.em,
+  ): Promise<CafeBean> {
+    const cafeBean = await em.findOne(
+      CafeBean,
+      { id: cafeBeanId },
+      { populate: ['cafe', 'bean', 'bean.roaster'] },
+    );
+    if (!cafeBean) {
+      throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
+    }
+    const membership = await em.findOne(CafeUser, {
+      cafe: cafeBean.cafe.id,
       user: userId,
     });
     if (!membership) {
       throw new ApiError(HttpStatus.FORBIDDEN, Errors.FORBIDDEN);
     }
-    return bean;
+    return cafeBean;
   }
 
   /**
@@ -150,13 +215,15 @@ export class BeanService {
    * 4) 실측 가능 → 최근 14일 평균 소비량 사용
    * 5) 실측 불가 → fallback (cupsPerDay × gramsPerCup)
    */
-  private async computeRop(bean: Bean): Promise<RopInfo> {
-    const fallbackDailyGrams = Number(bean.cupsPerDay) * Number(bean.gramsPerCup);
+  private async computeRop(cafeBean: CafeBean): Promise<RopInfo> {
+    const fallbackDailyGrams =
+      Number(cafeBean.cupsPerDay) * Number(cafeBean.gramsPerCup);
 
-    if (!bean.autoRopEnabled) {
+    if (!cafeBean.autoRopEnabled) {
       return {
         status: 'paused',
-        cupsRemaining: Number(bean.remainGrams) / Number(bean.gramsPerCup),
+        cupsRemaining:
+          Number(cafeBean.remainGrams) / Number(cafeBean.gramsPerCup),
         daysRemaining: null,
         dailyGrams: 0,
         source: 'fallback',
@@ -164,7 +231,8 @@ export class BeanService {
     }
 
     const now = Date.now();
-    const ageDays = (now - bean.createdAt.getTime()) / (24 * 60 * 60 * 1000);
+    const ageDays =
+      (now - cafeBean.createdAt.getTime()) / (24 * 60 * 60 * 1000);
     const isInGrace = ageDays < ROP_GRACE_DAYS;
 
     let dailyGrams = fallbackDailyGrams;
@@ -177,7 +245,7 @@ export class BeanService {
       const recentRecordBeans = await this.em.find(
         RecordBean,
         {
-          bean: bean.id,
+          cafeBean: cafeBean.id,
           record: { brewedAt: { $gte: windowStart } },
         },
         { populate: ['record'] },
@@ -189,7 +257,8 @@ export class BeanService {
       if (recentTotal === 0) {
         return {
           status: 'paused',
-          cupsRemaining: Number(bean.remainGrams) / Number(bean.gramsPerCup),
+          cupsRemaining:
+            Number(cafeBean.remainGrams) / Number(cafeBean.gramsPerCup),
           daysRemaining: null,
           dailyGrams: 0,
           source: 'measured',
@@ -199,9 +268,9 @@ export class BeanService {
       source = 'measured';
     }
 
-    const remain = Number(bean.remainGrams);
+    const remain = Number(cafeBean.remainGrams);
     const daysRemaining = dailyGrams > 0 ? remain / dailyGrams : null;
-    const cupsRemaining = remain / Number(bean.gramsPerCup);
+    const cupsRemaining = remain / Number(cafeBean.gramsPerCup);
 
     let status: RopInfo['status'] = 'fresh';
     if (daysRemaining !== null) {
@@ -218,29 +287,30 @@ export class BeanService {
     };
   }
 
-  private async toResponse(bean: Bean): Promise<BeanResponse> {
-    const rop = await this.computeRop(bean);
+  private async toResponse(cafeBean: CafeBean): Promise<BeanResponse> {
+    const rop = await this.computeRop(cafeBean);
+    const bean = cafeBean.bean;
     return {
-      id: bean.id,
-      cafeId: bean.cafe.id,
+      id: cafeBean.id,
+      cafeId: cafeBean.cafe.id,
       name: bean.name,
       origin: bean.origin,
       roaster: bean.roaster
         ? { id: bean.roaster.id, name: bean.roaster.name }
         : null,
-      totalGrams: Number(bean.totalGrams),
-      remainGrams: Number(bean.remainGrams),
-      orderedAt: bean.orderedAt,
-      roastedOn: bean.roastedOn,
-      arrivedAt: bean.arrivedAt,
-      degassingDays: bean.degassingDays,
-      cupsPerDay: Number(bean.cupsPerDay),
-      gramsPerCup: Number(bean.gramsPerCup),
-      autoRopEnabled: bean.autoRopEnabled,
-      finishedAt: bean.finishedAt,
-      finishedReason: bean.finishedReason,
-      archivedAt: bean.archivedAt,
-      createdAt: bean.createdAt,
+      totalGrams: Number(cafeBean.totalGrams),
+      remainGrams: Number(cafeBean.remainGrams),
+      orderedAt: cafeBean.orderedAt,
+      roastedOn: cafeBean.roastedOn,
+      arrivedAt: cafeBean.arrivedAt,
+      degassingDays: cafeBean.degassingDays,
+      cupsPerDay: Number(cafeBean.cupsPerDay),
+      gramsPerCup: Number(cafeBean.gramsPerCup),
+      autoRopEnabled: cafeBean.autoRopEnabled,
+      finishedAt: cafeBean.finishedAt,
+      finishedReason: cafeBean.finishedReason,
+      archivedAt: cafeBean.archivedAt,
+      createdAt: cafeBean.createdAt,
       rop,
     };
   }

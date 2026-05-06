@@ -38,9 +38,10 @@ export class BeanController {
   @UseGuards(CafeMemberGuard)
   async create(
     @Param('cafeId', ParseIntPipe) cafeId: number,
+    @CurrentUser() user: JwtPayload,
     @Body() dto: CreateBeanDto,
   ): Promise<BeanResponse> {
-    return this.beanService.createBean(cafeId, dto);
+    return this.beanService.createBean(cafeId, user.sub, dto);
   }
 
   @Get('beans/:beanId')

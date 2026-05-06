@@ -7,20 +7,24 @@ import {
   Property,
 } from '@mikro-orm/core';
 import { User } from './user.entity';
-import { EntitySource } from './enums';
+import { EntitySource, RecipeMethod } from './enums';
+import type { RecipeParamsJson } from '../types/recipe-params';
 
 @Entity()
-export class Roaster {
-  [OptionalProps]?: 'country' | 'createdBy' | 'createdAt';
+export class Recipe {
+  [OptionalProps]?: 'params' | 'createdBy' | 'createdAt';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
-  @Property({ length: 120, unique: true })
+  @Property({ length: 120 })
   name!: string;
 
-  @Property({ length: 60, nullable: true })
-  country: string | null = null;
+  @Enum(() => RecipeMethod)
+  method!: RecipeMethod;
+
+  @Property({ type: 'json', nullable: true })
+  params: RecipeParamsJson | null = null;
 
   @Enum(() => EntitySource)
   source!: EntitySource;

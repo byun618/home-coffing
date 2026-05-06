@@ -1,11 +1,12 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/mysql';
 import {
-  Bean,
   BeanFinishedReason,
+  CafeBean,
   CafeUser,
   Record as RecordEntity,
   RecordBean,
+  TasteNote,
   User,
 } from '../common/entities';
 import { ApiError, Errors } from '../common/exceptions/api-error.exception';
@@ -13,6 +14,7 @@ import {
   CreateRecordDto,
   RecordBeanDto,
   RecordResponse,
+  TasteNoteInput,
   UpdateRecordDto,
 } from './dto';
 
@@ -32,10 +34,8 @@ export class RecordService {
   ): Promise<RecordResponse[]> {
     const limit = Math.min(options.limit ?? 50, 200);
 
-    const beanScope: Partial<{
-      recordBeans: { bean: { id: number } };
-    }> = options.beanId
-      ? { recordBeans: { bean: { id: options.beanId } } }
+    const beanScope = options.beanId
+      ? { recordBeans: { cafeBean: { id: options.beanId } } }
       : {};
     const timeScope = options.before
       ? { brewedAt: { $lt: options.before } }
@@ -52,7 +52,9 @@ export class RecordService {
         populate: [
           'user',
           'recordBeans',
-          'recordBeans.bean',
+          'recordBeans.cafeBean',
+          'recordBeans.cafeBean.bean',
+          'tasteNotes',
         ],
         orderBy: { brewedAt: 'DESC' },
         limit,
@@ -76,36 +78,57 @@ export class RecordService {
       const user = await em.findOne(User, { id: userId });
       if (!user) throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
 
-      const beans = await this.loadBeansInCafe(em, cafeId, dto.beans);
-
-      const totalGrams = dto.beans.reduce((sum, b) => sum + b.grams, 0);
+      const cafeBeans = await this.loadCafeBeansInCafe(em, cafeId, dto.beans);
 
       const record = em.create(RecordEntity, {
         cafe: cafeId,
         user,
-        totalGrams,
-        cups: dto.cups ?? null,
         brewedAt: dto.brewedAt,
         memo: dto.memo ?? null,
-        recipe: dto.recipe ?? null,
-        tasteNote: dto.tasteNote ?? null,
       });
       em.persist(record);
 
       for (const beanDto of dto.beans) {
-        const bean = beans.get(beanDto.beanId)!;
+        const cafeBean = cafeBeans.get(beanDto.beanId)!;
         const recordBean = em.create(RecordBean, {
           record,
-          bean,
+          cafeBean,
           grams: beanDto.grams,
         });
         em.persist(recordBean);
 
-        this.deductBean(bean, beanDto.grams);
+        this.deductCafeBean(cafeBean, beanDto.grams);
+      }
+
+      // dev-plan D8: dto.recipe는 silently ignored. record.recipe FK = null 유지.
+
+      if (dto.tasteNote) {
+        const tasteNote = em.create(TasteNote, {
+          record,
+          author: user,
+          memo: dto.tasteNote.text,
+          rating: dto.tasteNote.rating ?? null,
+          createdAt: new Date(),
+        });
+        em.persist(tasteNote);
       }
 
       await em.flush();
-      return this.toResponse(record);
+
+      const populated = await em.findOneOrFail(
+        RecordEntity,
+        { id: record.id },
+        {
+          populate: [
+            'user',
+            'recordBeans',
+            'recordBeans.cafeBean',
+            'recordBeans.cafeBean.bean',
+            'tasteNotes',
+          ],
+        },
+      );
+      return this.toResponse(populated);
     });
   }
 
@@ -123,7 +146,9 @@ export class RecordService {
             'user',
             'cafe',
             'recordBeans',
-            'recordBeans.bean',
+            'recordBeans.cafeBean',
+            'recordBeans.cafeBean.bean',
+            'tasteNotes',
           ],
         },
       );
@@ -136,33 +161,36 @@ export class RecordService {
 
       if (dto.beans) {
         for (const recordBean of record.recordBeans.getItems()) {
-          this.restoreBean(recordBean.bean, Number(recordBean.grams));
+          this.restoreCafeBean(recordBean.cafeBean, Number(recordBean.grams));
         }
         record.recordBeans.removeAll();
 
-        const beans = await this.loadBeansInCafe(
+        const cafeBeans = await this.loadCafeBeansInCafe(
           em,
           record.cafe.id,
           dto.beans,
         );
         for (const beanDto of dto.beans) {
-          const bean = beans.get(beanDto.beanId)!;
+          const cafeBean = cafeBeans.get(beanDto.beanId)!;
           const recordBean = em.create(RecordBean, {
             record,
-            bean,
+            cafeBean,
             grams: beanDto.grams,
           });
           em.persist(recordBean);
-          this.deductBean(bean, beanDto.grams);
+          this.deductCafeBean(cafeBean, beanDto.grams);
         }
-        record.totalGrams = dto.beans.reduce((sum, b) => sum + b.grams, 0);
       }
 
-      if (dto.cups !== undefined) record.cups = dto.cups;
       if (dto.brewedAt !== undefined) record.brewedAt = dto.brewedAt;
       if (dto.memo !== undefined) record.memo = dto.memo;
-      if (dto.recipe !== undefined) record.recipe = dto.recipe;
-      if (dto.tasteNote !== undefined) record.tasteNote = dto.tasteNote;
+
+      // dev-plan D8: dto.recipe는 silently ignored.
+      // dto.cups는 entity 컬럼이 없으므로 silently ignored.
+
+      if (dto.tasteNote !== undefined) {
+        await this.applyTasteNoteUpdate(em, record, dto.tasteNote);
+      }
 
       await em.flush();
       return this.toResponse(record);
@@ -174,7 +202,14 @@ export class RecordService {
       const record = await em.findOne(
         RecordEntity,
         { id: recordId },
-        { populate: ['user', 'recordBeans', 'recordBeans.bean'] },
+        {
+          populate: [
+            'user',
+            'recordBeans',
+            'recordBeans.cafeBean',
+            'recordBeans.cafeBean.bean',
+          ],
+        },
       );
       if (!record) {
         throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
@@ -184,7 +219,7 @@ export class RecordService {
       }
 
       for (const recordBean of record.recordBeans.getItems()) {
-        this.restoreBean(recordBean.bean, Number(recordBean.grams));
+        this.restoreCafeBean(recordBean.cafeBean, Number(recordBean.grams));
       }
       em.remove(record);
       await em.flush();
@@ -203,7 +238,9 @@ export class RecordService {
           'cafe',
           'user',
           'recordBeans',
-          'recordBeans.bean',
+          'recordBeans.cafeBean',
+          'recordBeans.cafeBean.bean',
+          'tasteNotes',
         ],
       },
     );
@@ -220,58 +257,109 @@ export class RecordService {
     return record;
   }
 
-  private async loadBeansInCafe(
+  private async loadCafeBeansInCafe(
     em: EntityManager,
     cafeId: number,
     items: RecordBeanDto[],
-  ): Promise<Map<number, Bean>> {
+  ): Promise<Map<number, CafeBean>> {
     const ids = items.map((item) => item.beanId);
-    const beans = await em.find(Bean, { id: { $in: ids }, cafe: cafeId });
-    if (beans.length !== new Set(ids).size) {
+    const cafeBeans = await em.find(
+      CafeBean,
+      { id: { $in: ids }, cafe: cafeId },
+      { populate: ['bean'] },
+    );
+    if (cafeBeans.length !== new Set(ids).size) {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
     }
-    return new Map(beans.map((bean) => [bean.id, bean]));
+    return new Map(cafeBeans.map((cafeBean) => [cafeBean.id, cafeBean]));
   }
 
   /**
    * 잔량 차감 — 음수 차단(INSUFFICIENT_BEAN). 0 도달 시 자동 finishedAt + finishedReason=consumed.
    */
-  private deductBean(bean: Bean, grams: number): void {
-    const next = Number(bean.remainGrams) - grams;
+  private deductCafeBean(cafeBean: CafeBean, grams: number): void {
+    const next = Number(cafeBean.remainGrams) - grams;
     if (next < 0) {
       throw new ApiError(HttpStatus.BAD_REQUEST, {
         ...Errors.INSUFFICIENT_BEAN,
         meta: {
-          beanId: bean.id,
-          remainGrams: Number(bean.remainGrams),
+          beanId: cafeBean.id,
+          remainGrams: Number(cafeBean.remainGrams),
           requested: grams,
         },
       });
     }
-    bean.remainGrams = next;
-    if (next === 0 && !bean.finishedAt) {
-      bean.finishedAt = new Date();
-      bean.finishedReason = BeanFinishedReason.CONSUMED;
+    cafeBean.remainGrams = next;
+    if (next === 0 && !cafeBean.finishedAt) {
+      cafeBean.finishedAt = new Date();
+      cafeBean.finishedReason = BeanFinishedReason.CONSUMED;
     }
   }
 
   /**
    * 기록 수정/삭제 시 잔량 복원. 자동 finished 상태였으면 해제.
    */
-  private restoreBean(bean: Bean, grams: number): void {
-    const next = Number(bean.remainGrams) + grams;
-    bean.remainGrams = next;
+  private restoreCafeBean(cafeBean: CafeBean, grams: number): void {
+    const next = Number(cafeBean.remainGrams) + grams;
+    cafeBean.remainGrams = next;
     if (
-      bean.finishedAt &&
-      bean.finishedReason === BeanFinishedReason.CONSUMED &&
+      cafeBean.finishedAt &&
+      cafeBean.finishedReason === BeanFinishedReason.CONSUMED &&
       next > 0
     ) {
-      bean.finishedAt = null;
-      bean.finishedReason = null;
+      cafeBean.finishedAt = null;
+      cafeBean.finishedReason = null;
     }
   }
 
+  private async applyTasteNoteUpdate(
+    em: EntityManager,
+    record: RecordEntity,
+    input: TasteNoteInput | null,
+  ): Promise<void> {
+    const existing = record.tasteNotes.getItems()[0] ?? null;
+
+    if (input === null) {
+      if (existing) {
+        em.remove(existing);
+      }
+      return;
+    }
+
+    if (existing) {
+      existing.memo = input.text;
+      existing.rating = input.rating ?? null;
+      return;
+    }
+
+    const tasteNote = em.create(TasteNote, {
+      record,
+      author: record.user,
+      memo: input.text,
+      rating: input.rating ?? null,
+      createdAt: new Date(),
+    });
+    em.persist(tasteNote);
+  }
+
   private toResponse(record: RecordEntity): RecordResponse {
+    const recordBeans = record.recordBeans.getItems();
+    const totalGrams = recordBeans.reduce(
+      (sum, recordBean) => sum + Number(recordBean.grams),
+      0,
+    );
+
+    const firstTasteNote = record.tasteNotes.getItems()[0] ?? null;
+    const tasteNoteResponse =
+      firstTasteNote && firstTasteNote.memo !== null
+        ? {
+            text: firstTasteNote.memo,
+            ...(firstTasteNote.rating !== null
+              ? { rating: Number(firstTasteNote.rating) }
+              : {}),
+          }
+        : null;
+
     return {
       id: record.id,
       cafeId: record.cafe.id,
@@ -280,16 +368,16 @@ export class RecordService {
         email: record.user.email,
         displayName: record.user.displayName,
       },
-      totalGrams: Number(record.totalGrams),
-      cups: record.cups !== null ? Number(record.cups) : null,
+      totalGrams,
+      cups: null,
       brewedAt: record.brewedAt,
       loggedAt: record.loggedAt,
       memo: record.memo,
-      recipe: record.recipe,
-      tasteNote: record.tasteNote,
-      beans: record.recordBeans.getItems().map((recordBean) => ({
-        beanId: recordBean.bean.id,
-        beanName: recordBean.bean.name,
+      recipe: null,
+      tasteNote: tasteNoteResponse,
+      beans: recordBeans.map((recordBean) => ({
+        beanId: recordBean.cafeBean.id,
+        beanName: recordBean.cafeBean.bean.name,
         grams: Number(recordBean.grams),
       })),
       createdAt: record.createdAt,

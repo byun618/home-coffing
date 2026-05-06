@@ -8,88 +8,48 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
-import { Cafe } from './cafe.entity';
 import { Roaster } from './roaster.entity';
-import { RecordBean } from './record-bean.entity';
-
-export enum BeanFinishedReason {
-  CONSUMED = 'consumed',
-  DISCARDED = 'discarded',
-}
+import { User } from './user.entity';
+import { CafeBean } from './cafe-bean.entity';
+import { EntitySource } from './enums';
 
 @Entity()
 export class Bean {
   [OptionalProps]?:
     | 'roaster'
     | 'origin'
-    | 'arrivedAt'
-    | 'degassingDays'
-    | 'cupsPerDay'
-    | 'gramsPerCup'
-    | 'finishedAt'
-    | 'finishedReason'
-    | 'archivedAt'
-    | 'autoRopEnabled'
-    | 'lastRopAlertAt'
+    | 'process'
+    | 'roastLevel'
+    | 'createdBy'
     | 'createdAt'
-    | 'recordBeans';
+    | 'cafeBeans';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
-  @ManyToOne(() => Cafe, { deleteRule: 'cascade' })
-  cafe!: Cafe;
+  @Property({ length: 120 })
+  name!: string;
 
   @ManyToOne(() => Roaster, { nullable: true })
   roaster: Roaster | null = null;
 
-  @Property({ length: 120 })
-  name!: string;
-
   @Property({ length: 120, nullable: true })
   origin: string | null = null;
 
-  @Property({ columnType: 'decimal(10,1)' })
-  totalGrams!: number;
+  @Property({ length: 60, nullable: true })
+  process: string | null = null;
 
-  @Property({ columnType: 'decimal(10,1)' })
-  remainGrams!: number;
+  @Property({ length: 30, nullable: true })
+  roastLevel: string | null = null;
 
-  @Property({ type: 'date' })
-  orderedAt!: Date;
+  @Enum(() => EntitySource)
+  source!: EntitySource;
 
-  @Property({ type: 'date' })
-  roastedOn!: Date;
+  @ManyToOne(() => User, { nullable: true, deleteRule: 'set null' })
+  createdBy: User | null = null;
 
-  @Property({ type: 'date', nullable: true })
-  arrivedAt: Date | null = null;
-
-  @Property({ default: 7 })
-  degassingDays: number = 7;
-
-  @Property({ columnType: 'decimal(10,2)', default: 2 })
-  cupsPerDay: number = 2;
-
-  @Property({ columnType: 'decimal(10,2)', default: 20 })
-  gramsPerCup: number = 20;
-
-  @Property({ nullable: true })
-  finishedAt: Date | null = null;
-
-  @Enum({ items: () => BeanFinishedReason, nullable: true })
-  finishedReason: BeanFinishedReason | null = null;
-
-  @Property({ nullable: true })
-  archivedAt: Date | null = null;
-
-  @Property({ default: true })
-  autoRopEnabled: boolean = true;
-
-  @Property({ nullable: true })
-  lastRopAlertAt: Date | null = null;
-
-  @OneToMany(() => RecordBean, (recordBean) => recordBean.bean)
-  recordBeans = new Collection<RecordBean>(this);
+  @OneToMany(() => CafeBean, (cafeBean) => cafeBean.bean)
+  cafeBeans = new Collection<CafeBean>(this);
 
   @Property()
   createdAt: Date = new Date();

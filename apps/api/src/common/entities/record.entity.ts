@@ -9,50 +9,21 @@ import {
 } from '@mikro-orm/core';
 import { Cafe } from './cafe.entity';
 import { User } from './user.entity';
+import { Recipe } from './recipe.entity';
 import { RecordBean } from './record-bean.entity';
-
-export interface RecipeStep {
-  label: string;
-  atMark?: string;
-  yieldGrams?: number;
-  note?: string;
-}
-
-export interface RecipeJson {
-  brewingMethod?:
-    | 'v60'
-    | 'switch'
-    | 'espresso'
-    | 'moka'
-    | 'aeropress'
-    | 'french_press'
-    | 'other';
-  coffeeGrams?: number;
-  grindSize?: number;
-  grindUnit?: string;
-  waterTempCelsius?: number;
-  totalYieldGrams?: number;
-  totalTimeSeconds?: number;
-  iceGrams?: number;
-  steps?: RecipeStep[];
-  extraNote?: string;
-}
-
-export interface TasteNoteJson {
-  text: string;
-  rating?: number;
-}
+import { RecordEquipment } from './record-equipment.entity';
+import { TasteNote } from './taste-note.entity';
 
 @Entity({ tableName: 'record' })
 export class Record {
   [OptionalProps]?:
-    | 'cups'
     | 'recipe'
-    | 'tasteNote'
     | 'memo'
     | 'loggedAt'
     | 'createdAt'
-    | 'recordBeans';
+    | 'recordBeans'
+    | 'recordEquipments'
+    | 'tasteNotes';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
@@ -63,12 +34,6 @@ export class Record {
   @ManyToOne(() => User)
   user!: User;
 
-  @Property({ columnType: 'decimal(10,1)' })
-  totalGrams!: number;
-
-  @Property({ columnType: 'decimal(10,2)', nullable: true })
-  cups: number | null = null;
-
   @Property()
   brewedAt!: Date;
 
@@ -78,16 +43,25 @@ export class Record {
   @Property({ length: 200, nullable: true })
   memo: string | null = null;
 
-  @Property({ type: 'json', nullable: true })
-  recipe: RecipeJson | null = null;
-
-  @Property({ type: 'json', nullable: true })
-  tasteNote: TasteNoteJson | null = null;
+  @ManyToOne(() => Recipe, { nullable: true, deleteRule: 'set null' })
+  recipe: Recipe | null = null;
 
   @OneToMany(() => RecordBean, (recordBean) => recordBean.record, {
     orphanRemoval: true,
   })
   recordBeans = new Collection<RecordBean>(this);
+
+  @OneToMany(
+    () => RecordEquipment,
+    (recordEquipment) => recordEquipment.record,
+    { orphanRemoval: true },
+  )
+  recordEquipments = new Collection<RecordEquipment>(this);
+
+  @OneToMany(() => TasteNote, (tasteNote) => tasteNote.record, {
+    orphanRemoval: true,
+  })
+  tasteNotes = new Collection<TasteNote>(this);
 
   @Property()
   createdAt: Date = new Date();

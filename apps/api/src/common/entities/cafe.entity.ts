@@ -7,9 +7,9 @@ import {
   Property,
 } from '@mikro-orm/core';
 import { CafeUser } from './cafe-user.entity';
-import { Bean } from './bean.entity';
+import { CafeBean } from './cafe-bean.entity';
+import { CafeEquipment } from './cafe-equipment.entity';
 import { Record as RecordEntity } from './record.entity';
-import { Equipment } from './equipment.entity';
 import { Invitation } from './invitation.entity';
 
 @Entity()
@@ -18,9 +18,9 @@ export class Cafe {
     | 'name'
     | 'createdAt'
     | 'members'
-    | 'beans'
+    | 'cafeBeans'
+    | 'cafeEquipments'
     | 'records'
-    | 'equipments'
     | 'invitations';
 
   @PrimaryKey({ autoincrement: true })
@@ -32,14 +32,14 @@ export class Cafe {
   @OneToMany(() => CafeUser, (cafeUser) => cafeUser.cafe)
   members = new Collection<CafeUser>(this);
 
-  @OneToMany(() => Bean, (bean) => bean.cafe)
-  beans = new Collection<Bean>(this);
+  @OneToMany(() => CafeBean, (cafeBean) => cafeBean.cafe)
+  cafeBeans = new Collection<CafeBean>(this);
+
+  @OneToMany(() => CafeEquipment, (cafeEquipment) => cafeEquipment.cafe)
+  cafeEquipments = new Collection<CafeEquipment>(this);
 
   @OneToMany(() => RecordEntity, (record) => record.cafe)
   records = new Collection<RecordEntity>(this);
-
-  @OneToMany(() => Equipment, (equipment) => equipment.cafe)
-  equipments = new Collection<Equipment>(this);
 
   @OneToMany(() => Invitation, (invitation) => invitation.cafe)
   invitations = new Collection<Invitation>(this);
