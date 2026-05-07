@@ -58,36 +58,17 @@ export interface Bean {
   rop: RopInfo;
 }
 
-export interface RecipeStep {
-  label: string;
-  atMark?: string;
-  yieldGrams?: number;
-  note?: string;
-}
-
-export interface RecipeJson {
-  brewingMethod?:
-    | "v60"
-    | "switch"
-    | "espresso"
-    | "moka"
-    | "aeropress"
-    | "french_press"
-    | "other";
-  coffeeGrams?: number;
-  grindSize?: number;
-  grindUnit?: string;
-  waterTempCelsius?: number;
-  totalYieldGrams?: number;
-  totalTimeSeconds?: number;
-  iceGrams?: number;
-  steps?: RecipeStep[];
-  extraNote?: string;
-}
-
-export interface TasteNoteJson {
-  text: string;
-  rating?: number;
+export interface TasteNoteResponse {
+  id: number;
+  recordId: number;
+  author: {
+    id: number;
+    email: string;
+    displayName: string | null;
+  };
+  rating: number | null;
+  memo: string | null;
+  createdAt: string;
 }
 
 export interface Record {
@@ -102,9 +83,7 @@ export interface Record {
   cups: number | null;
   brewedAt: string;
   loggedAt: string;
-  memo: string | null;
-  recipe: RecipeJson | null;
-  tasteNote: TasteNoteJson | null;
+  tasteNotes: TasteNoteResponse[];
   beans: Array<{
     beanId: number;
     beanName: string;

@@ -6,17 +6,10 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
-  IsString,
-  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
-import type { RecipeParamsJson } from '../common/types/recipe-params';
-
-export interface TasteNoteInput {
-  text: string;
-  rating?: number;
-}
+import type { TasteNoteResponse } from '../taste-note/dto';
 
 export class RecordBeanDto {
   @IsInt()
@@ -42,17 +35,6 @@ export class CreateRecordDto {
   @IsDate()
   @Type(() => Date)
   brewedAt!: Date;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  memo?: string;
-
-  @IsOptional()
-  recipe?: RecipeParamsJson;
-
-  @IsOptional()
-  tasteNote?: TasteNoteInput;
 }
 
 export class UpdateRecordDto {
@@ -72,17 +54,6 @@ export class UpdateRecordDto {
   @IsDate()
   @Type(() => Date)
   brewedAt?: Date;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  memo?: string;
-
-  @IsOptional()
-  recipe?: RecipeParamsJson;
-
-  @IsOptional()
-  tasteNote?: TasteNoteInput | null;
 }
 
 export interface RecordResponse {
@@ -97,9 +68,7 @@ export interface RecordResponse {
   cups: number | null;
   brewedAt: Date;
   loggedAt: Date;
-  memo: string | null;
-  recipe: RecipeParamsJson | null;
-  tasteNote: { text: string; rating?: number } | null;
+  tasteNotes: TasteNoteResponse[];
   beans: Array<{
     beanId: number;
     beanName: string;

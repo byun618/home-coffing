@@ -3,7 +3,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { ChevronDown, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
@@ -18,8 +18,6 @@ import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
-import { RatingField } from "../form/RatingField";
-import { TextField } from "../form/TextField";
 
 interface Props {
   visible: boolean;
@@ -59,9 +57,6 @@ export function RecordEditSheet({
   const baselineEntries = entriesFromRecord(record);
 
   const [entries, setEntries] = useState<BeanEntry[]>(baselineEntries);
-  const [memo, setMemo] = useState(record.memo ?? "");
-  const [tasteText, setTasteText] = useState(record.tasteNote?.text ?? "");
-  const [rating, setRating] = useState(record.tasteNote?.rating ?? 0);
   const [brewedAt, setBrewedAt] = useState<Date>(new Date(record.brewedAt));
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +67,6 @@ export function RecordEditSheet({
   useEffect(() => {
     if (visible) {
       setEntries(entriesFromRecord(record));
-      setMemo(record.memo ?? "");
-      setTasteText(record.tasteNote?.text ?? "");
-      setRating(record.tasteNote?.rating ?? 0);
       setBrewedAt(new Date(record.brewedAt));
       setShowPicker(false);
       setError(null);
@@ -156,9 +148,6 @@ export function RecordEditSheet({
 
   const isDirty =
     !entriesEqual(entries, baselineEntries) ||
-    memo !== (record.memo ?? "") ||
-    tasteText !== (record.tasteNote?.text ?? "") ||
-    rating !== (record.tasteNote?.rating ?? 0) ||
     new Date(record.brewedAt).getTime() !== brewedAt.getTime();
   const close = useDirtyClose(isDirty, onClose);
 
@@ -175,14 +164,6 @@ export function RecordEditSheet({
         beanId: entry.beanId,
         grams: Number(entry.grams),
       })),
-      memo: memo.trim() || undefined,
-      tasteNote:
-        tasteText.trim() || rating > 0
-          ? {
-              text: tasteText.trim(),
-              ...(rating > 0 ? { rating } : {}),
-            }
-          : undefined,
     };
     if (new Date(record.brewedAt).getTime() !== brewedAt.getTime()) {
       input.brewedAt = brewedAt.toISOString();
@@ -284,24 +265,6 @@ export function RecordEditSheet({
             />
           ) : null}
         </View>
-
-        <TextField
-          label="한 줄 메모"
-          value={memo}
-          onChangeText={setMemo}
-          placeholder="오늘 향이 정말 좋았어"
-          maxLength={200}
-        />
-
-        <RatingField label="별점" value={rating} onChange={setRating} />
-
-        <TextField
-          label="맛 노트"
-          value={tasteText}
-          onChangeText={setTasteText}
-          placeholder="예) 베리, 다크초콜릿"
-          multiline
-        />
 
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">

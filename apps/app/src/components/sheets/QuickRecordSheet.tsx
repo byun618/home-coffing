@@ -20,8 +20,6 @@ import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { PrimaryButton } from "../form/PrimaryButton";
-import { RatingField } from "../form/RatingField";
-import { TextField } from "../form/TextField";
 
 interface Props {
   visible: boolean;
@@ -37,9 +35,6 @@ interface BeanEntry {
 
 export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
   const [entries, setEntries] = useState<BeanEntry[]>([]);
-  const [memo, setMemo] = useState("");
-  const [tasteText, setTasteText] = useState("");
-  const [rating, setRating] = useState(0);
   const [brewedAt, setBrewedAt] = useState<Date>(new Date());
   const [timeMode, setTimeMode] = useState<"now" | "custom">("now");
   const [showPicker, setShowPicker] = useState(false);
@@ -55,9 +50,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           ? { beanId: beans[0].id, grams: "" }
           : { beanId: 0, grams: "" };
       setEntries([initialEntry]);
-      setMemo("");
-      setTasteText("");
-      setRating(0);
       setBrewedAt(new Date());
       setTimeMode("now");
       setShowPicker(false);
@@ -117,9 +109,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
 
   const isDirty =
     entries.some((entry) => entry.beanId > 0 || entry.grams.length > 0) ||
-    memo.trim().length > 0 ||
-    tasteText.trim().length > 0 ||
-    rating > 0 ||
     timeMode === "custom";
   const close = useDirtyClose(isDirty, onClose);
 
@@ -138,14 +127,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           grams: Number(entry.grams),
         })),
         brewedAt: (timeMode === "now" ? new Date() : brewedAt).toISOString(),
-        memo: memo.trim() || undefined,
-        tasteNote:
-          tasteText.trim() || rating > 0
-            ? {
-                text: tasteText.trim(),
-                ...(rating > 0 ? { rating } : {}),
-              }
-            : undefined,
       });
       showSuccess("저장 완료", "오늘의 한 잔이 기록됐어요");
       onClose();
@@ -334,24 +315,6 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
             />
           ) : null}
         </View>
-
-        <TextField
-          label="한 줄 메모 (선택)"
-          value={memo}
-          onChangeText={setMemo}
-          placeholder="오늘 향이 정말 좋았어"
-          maxLength={200}
-        />
-
-        <RatingField label="별점" value={rating} onChange={setRating} />
-
-        <TextField
-          label="맛 노트 (선택)"
-          value={tasteText}
-          onChangeText={setTasteText}
-          placeholder="예) 베리, 다크초콜릿, 깊은 단맛"
-          multiline
-        />
 
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">

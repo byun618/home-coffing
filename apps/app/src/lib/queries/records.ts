@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "../api";
-import type { Record, RecipeJson, TasteNoteJson } from "../types";
+import type { Record } from "../types";
 import { beanKeys } from "./beans";
 
 export const recordKeys = {
@@ -47,9 +47,6 @@ export interface CreateRecordInput {
   beans: Array<{ beanId: number; grams: number }>;
   brewedAt: string;
   cups?: number;
-  memo?: string;
-  recipe?: RecipeJson;
-  tasteNote?: TasteNoteJson;
 }
 
 export function useCreateRecord(cafeId: number | null) {
@@ -75,9 +72,6 @@ export interface UpdateRecordInput {
   beans?: Array<{ beanId: number; grams: number }>;
   brewedAt?: string;
   cups?: number;
-  memo?: string;
-  recipe?: RecipeJson;
-  tasteNote?: TasteNoteJson;
 }
 
 export function useUpdateRecord(recordId: number | null) {

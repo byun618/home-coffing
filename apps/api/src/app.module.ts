@@ -7,6 +7,7 @@ import { CafeModule } from './cafe/cafe.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { BeanModule } from './bean/bean.module';
 import { RecordModule } from './record/record.module';
+import { TasteNoteModule } from './taste-note/taste-note.module';
 import { DeviceModule } from './device/device.module';
 import { NotificationModule } from './notification/notification.module';
 import { EventModule } from './event/event.module';
@@ -21,6 +22,7 @@ import { EventModule } from './event/event.module';
     InvitationModule,
     BeanModule,
     RecordModule,
+    TasteNoteModule,
     DeviceModule,
     NotificationModule,
   ],
