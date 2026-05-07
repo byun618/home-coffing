@@ -63,16 +63,6 @@ export function RecordCard({ record, currentUserId, onPress }: Props) {
         </Text>
       </View>
 
-      {/* memo — 있을 때만 */}
-      {record.memo ? (
-        <Text
-          className="text-[15px] font-pretendard-medium text-text-primary"
-          numberOfLines={3}
-        >
-          {record.memo}
-        </Text>
-      ) : null}
-
       {/* bean chip */}
       <View
         className="bg-bg-primary flex-row items-center"

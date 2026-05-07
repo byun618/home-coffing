@@ -3,7 +3,10 @@ import {
   ArrowLeft,
   Coffee,
   MoreHorizontal,
+  Pencil,
+  Plus,
   Star,
+  StarHalf,
 } from "lucide-react-native";
 import { useState } from "react";
 import {
@@ -20,6 +23,7 @@ import { BottomSheet } from "../../src/components/BottomSheet";
 import { ConfirmDialog } from "../../src/components/ConfirmDialog";
 import { MemberAvatar } from "../../src/components/MemberAvatar";
 import { RecordEditSheet } from "../../src/components/sheets/RecordEditSheet";
+import { TasteNoteSheet } from "../../src/components/sheets/TasteNoteSheet";
 import { useBeansList } from "../../src/lib/queries/beans";
 import {
   useDeleteRecord,
@@ -28,7 +32,8 @@ import {
 import { showSuccess } from "../../src/lib/stores/alert-store";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 import { showToast } from "../../src/lib/stores/toast-store";
-import { formatGrams } from "../../src/lib/format";
+import type { TasteNoteResponse } from "../../src/lib/types";
+import { formatGrams, formatRelative } from "../../src/lib/format";
 
 function brewedAtLabel(iso: string): string {
   const d = new Date(iso);
@@ -49,6 +54,11 @@ function brewedAtLabel(iso: string): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 ${time}`;
 }
 
+type SheetState =
+  | { kind: "closed" }
+  | { kind: "create" }
+  | { kind: "update"; tasteNote: TasteNoteResponse };
+
 export default function RecordDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -62,6 +72,7 @@ export default function RecordDetailScreen() {
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [tasteSheet, setTasteSheet] = useState<SheetState>({ kind: "closed" });
 
   if (recordQuery.isLoading || !recordQuery.data) {
     return (
@@ -79,12 +90,6 @@ export default function RecordDetailScreen() {
   const variant: "self" | "wife" = isMine ? "self" : "wife";
   const accentColor = isMine ? "#3A2419" : "#8B6F5C";
 
-  // taste note chip 분할 (콤마/중점)
-  const tasteChips = (record.tasteNote?.text ?? "")
-    .split(/[,，·]/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
   async function onConfirmDelete() {
     setConfirmDelete(false);
     try {
@@ -98,6 +103,7 @@ export default function RecordDetailScreen() {
 
   const isBlend = record.beans.length > 1;
   const beanTotal = record.beans.reduce((sum, b) => sum + b.grams, 0);
+  const tasteNotes = record.tasteNotes ?? [];
 
   return (
     <SafeAreaView className="flex-1 bg-bg-primary" edges={["top"]}>
@@ -139,40 +145,31 @@ export default function RecordDetailScreen() {
           />
         }
       >
-        {/* Header — memo as 24/700 + author meta */}
+        {/* Header — author + 시각만 (memo 패턴 제거) */}
         <View
           className="gap-2"
           style={{
             paddingTop: 16,
             paddingHorizontal: 24,
-            paddingBottom: 28,
+            paddingBottom: 24,
           }}
         >
-          {record.memo ? (
-            <Text className="text-[24px] font-pretendard-bold text-text-primary">
-              {record.memo}
-            </Text>
-          ) : (
-            <Text className="text-[24px] font-pretendard-bold text-text-tertiary">
-              메모 없음
-            </Text>
-          )}
-          <View className="flex-row items-center" style={{ gap: 8 }}>
-            <MemberAvatar letter={initial} variant={variant} size={24} />
-            <Text className="text-[13px] font-pretendard-medium text-text-secondary">
-              {author}
-            </Text>
-            <Text className="text-[13px] font-pretendard text-text-tertiary">
-              ·
-            </Text>
-            <Text className="text-[13px] font-pretendard text-text-secondary">
-              {brewedAtLabel(record.brewedAt)}
-            </Text>
-            {!isMine ? (
-              <Text className="text-[12px] font-pretendard text-text-tertiary">
-                (다른 멤버)
+          <View className="flex-row items-center" style={{ gap: 10 }}>
+            <MemberAvatar letter={initial} variant={variant} size={36} />
+            <View className="flex-1 gap-0.5">
+              <Text className="text-[15px] font-pretendard-semibold text-text-primary">
+                {author}
+                {!isMine ? (
+                  <Text className="text-[12px] font-pretendard text-text-tertiary">
+                    {"  "}(다른 멤버)
+                  </Text>
+                ) : null}
               </Text>
-            ) : null}
+              <Text className="text-[13px] font-pretendard text-text-secondary">
+                {brewedAtLabel(record.brewedAt)} ·{" "}
+                {formatRelative(record.brewedAt)}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -228,63 +225,69 @@ export default function RecordDetailScreen() {
             </View>
           )}
 
-          {/* Taste note */}
-          {record.tasteNote?.text || record.tasteNote?.rating ? (
-            <View
-              className="bg-bg-secondary"
-              style={{ borderRadius: 16, padding: 18, gap: 14 }}
-            >
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[13px] font-pretendard-semibold text-text-secondary">
-                  맛 노트
-                </Text>
-                {record.tasteNote.rating ? (
-                  <View className="flex-row" style={{ gap: 2 }}>
-                    {[1, 2, 3, 4, 5].map((slot) => (
-                      <Star
-                        key={slot}
-                        size={14}
-                        color={
-                          slot <= (record.tasteNote!.rating ?? 0)
-                            ? "#3A2419"
-                            : "#A89A8C"
-                        }
-                        fill={
-                          slot <= (record.tasteNote!.rating ?? 0)
-                            ? "#3A2419"
-                            : "transparent"
-                        }
-                      />
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-              {tasteChips.length > 1 ? (
-                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-                  {tasteChips.map((chip, idx) => (
-                    <View
-                      key={idx}
-                      className="bg-bg-primary"
-                      style={{
-                        borderRadius: 36,
-                        paddingVertical: 8,
-                        paddingHorizontal: 14,
-                      }}
-                    >
-                      <Text className="text-[13px] font-pretendard-medium text-text-primary">
-                        {chip}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              ) : record.tasteNote.text ? (
-                <Text className="text-[14px] font-pretendard text-text-primary leading-5">
-                  {record.tasteNote.text}
+          {/* Taste notes section */}
+          <View className="gap-3">
+            <View className="flex-row items-center" style={{ gap: 6 }}>
+              <Text className="text-[15px] font-pretendard-semibold text-text-primary">
+                맛 노트
+              </Text>
+              {tasteNotes.length > 0 ? (
+                <Text className="text-[13px] font-pretendard text-text-tertiary">
+                  {tasteNotes.length}
                 </Text>
               ) : null}
             </View>
-          ) : null}
 
+            {tasteNotes.length === 0 ? (
+              <Pressable
+                onPress={() => setTasteSheet({ kind: "create" })}
+                className="bg-bg-secondary border border-divider items-center justify-center active:opacity-80"
+                style={{
+                  borderRadius: 16,
+                  paddingVertical: 28,
+                  borderStyle: "dashed",
+                  gap: 6,
+                }}
+              >
+                <Plus size={20} color="#7B6A5C" />
+                <Text className="text-[14px] font-pretendard-medium text-text-secondary">
+                  맛 노트 추가하기
+                </Text>
+                <Text className="text-[12px] font-pretendard text-text-tertiary">
+                  마시고 난 뒤에 천천히 적어도 좋아요
+                </Text>
+              </Pressable>
+            ) : (
+              <View className="gap-2">
+                {tasteNotes.map((note) => (
+                  <TasteNoteRow
+                    key={note.id}
+                    note={note}
+                    isMine={note.author.id === currentUserId}
+                    onEdit={() =>
+                      setTasteSheet({ kind: "update", tasteNote: note })
+                    }
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* + 추가 버튼 (항상 노출) */}
+            <Pressable
+              onPress={() => setTasteSheet({ kind: "create" })}
+              className="flex-row items-center justify-center bg-bg-secondary active:opacity-80"
+              style={{
+                borderRadius: 14,
+                paddingVertical: 14,
+                gap: 6,
+              }}
+            >
+              <Plus size={16} color="#3A2419" />
+              <Text className="text-[14px] font-pretendard-semibold text-accent">
+                맛 노트 추가
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
 
@@ -332,6 +335,26 @@ export default function RecordDetailScreen() {
         }}
       />
 
+      {tasteSheet.kind === "create" ? (
+        <TasteNoteSheet
+          visible
+          onClose={() => setTasteSheet({ kind: "closed" })}
+          cafeId={record.cafeId}
+          mode="create"
+          recordId={record.id}
+        />
+      ) : null}
+
+      {tasteSheet.kind === "update" ? (
+        <TasteNoteSheet
+          visible
+          onClose={() => setTasteSheet({ kind: "closed" })}
+          cafeId={record.cafeId}
+          mode="update"
+          tasteNote={tasteSheet.tasteNote}
+        />
+      ) : null}
+
       <ConfirmDialog
         visible={confirmDelete}
         title="기록을 삭제할까요?"
@@ -345,3 +368,78 @@ export default function RecordDetailScreen() {
   );
 }
 
+function TasteNoteRow({
+  note,
+  isMine,
+  onEdit,
+}: {
+  note: TasteNoteResponse;
+  isMine: boolean;
+  onEdit: () => void;
+}) {
+  const author = note.author.displayName ?? note.author.email.split("@")[0];
+  const initial =
+    note.author.displayName?.charAt(0) ?? note.author.email.charAt(0);
+  const variant: "self" | "wife" = isMine ? "self" : "wife";
+
+  return (
+    <View
+      className="bg-bg-secondary flex-row"
+      style={{ borderRadius: 16, padding: 16, gap: 12 }}
+    >
+      <MemberAvatar letter={initial} variant={variant} size={32} />
+      <View className="flex-1 gap-1.5">
+        <View className="flex-row items-center" style={{ gap: 6 }}>
+          <Text className="text-[13px] font-pretendard-semibold text-text-primary">
+            {author}
+          </Text>
+          <Text className="text-[12px] font-pretendard text-text-tertiary">
+            · {formatRelative(note.createdAt)}
+          </Text>
+        </View>
+        {note.rating !== null && note.rating > 0 ? (
+          <ReadOnlyHalfStars value={note.rating} />
+        ) : null}
+        {note.memo ? (
+          <Text className="text-[14px] font-pretendard text-text-primary leading-5">
+            {note.memo}
+          </Text>
+        ) : null}
+      </View>
+      {isMine ? (
+        <Pressable
+          onPress={onEdit}
+          hitSlop={6}
+          className="w-8 h-8 items-center justify-center"
+        >
+          <Pencil size={16} color="#7B6A5C" />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+function ReadOnlyHalfStars({ value }: { value: number }) {
+  return (
+    <View className="flex-row items-center" style={{ gap: 2 }}>
+      {[1, 2, 3, 4, 5].map((slot) => {
+        const full = value >= slot;
+        const half = !full && value >= slot - 0.5;
+        if (full) {
+          return <Star key={slot} size={14} color="#3A2419" fill="#3A2419" />;
+        }
+        if (half) {
+          return (
+            <StarHalf key={slot} size={14} color="#3A2419" fill="#3A2419" />
+          );
+        }
+        return (
+          <Star key={slot} size={14} color="#A89A8C" fill="transparent" />
+        );
+      })}
+      <Text className="text-[12px] font-pretendard-medium text-text-secondary ml-1">
+        {value.toFixed(1)}
+      </Text>
+    </View>
+  );
+}
