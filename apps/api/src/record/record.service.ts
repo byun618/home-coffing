@@ -1,15 +1,18 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { EntityManager } from '@mikro-orm/mysql';
+import { wrap } from '@mikro-orm/core';
 import {
   BeanFinishedReason,
   CafeBean,
   CafeUser,
+  Recipe,
   Record as RecordEntity,
   RecordBean,
   User,
 } from '../common/entities';
 import { ApiError, Errors } from '../common/exceptions/api-error.exception';
 import { mapTasteNote } from '../taste-note/mapper';
+import { toRecipeResponse } from '../recipe/recipe.service';
 import {
   CreateRecordDto,
   RecordBeanDto,
@@ -30,6 +33,10 @@ const RECORD_POPULATE = [
   'recordBeans.cafeBean.bean',
   'tasteNotes',
   'tasteNotes.author',
+  'recipe',
+  'recipe.recipeEquipments',
+  'recipe.recipeEquipments.equipment',
+  'recipe.createdBy',
 ] as const;
 
 @Injectable()
@@ -82,10 +89,14 @@ export class RecordService {
 
       const cafeBeans = await this.loadCafeBeansInCafe(em, cafeId, dto.beans);
 
+      const recipe = await this.resolveRecipe(em, cafeId, dto.recipeId);
+
       const record = em.create(RecordEntity, {
         cafe: cafeId,
         user,
         brewedAt: dto.brewedAt,
+        memo: dto.memo ?? null,
+        recipe,
       });
       em.persist(record);
 
@@ -154,11 +165,24 @@ export class RecordService {
       }
 
       if (dto.brewedAt !== undefined) record.brewedAt = dto.brewedAt;
+      if (dto.memo !== undefined) record.memo = dto.memo;
+      if (dto.recipeId !== undefined) {
+        const recipe =
+          dto.recipeId === null
+            ? null
+            : await this.resolveRecipe(em, record.cafe.id, dto.recipeId);
+        wrap(record).assign({ recipe });
+      }
 
       // dto.cups는 entity 컬럼이 없으므로 silently ignored.
 
       await em.flush();
-      return this.toResponse(record);
+      const populated = await em.findOneOrFail(
+        RecordEntity,
+        { id: record.id },
+        { populate: [...RECORD_POPULATE] },
+      );
+      return this.toResponse(populated);
     });
   }
 
@@ -230,6 +254,29 @@ export class RecordService {
     return new Map(cafeBeans.map((cafeBean) => [cafeBean.id, cafeBean]));
   }
 
+  private async resolveRecipe(
+    em: EntityManager,
+    cafeId: number,
+    recipeId: number | null | undefined,
+  ): Promise<Recipe | null> {
+    if (recipeId === undefined || recipeId === null) return null;
+    const recipe = await em.findOne(
+      Recipe,
+      { id: recipeId, cafe: cafeId },
+      {
+        populate: [
+          'recipeEquipments',
+          'recipeEquipments.equipment',
+          'createdBy',
+        ],
+      },
+    );
+    if (!recipe) {
+      throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
+    }
+    return recipe;
+  }
+
   /**
    * 잔량 차감 — 음수 차단(INSUFFICIENT_BEAN). 0 도달 시 자동 finishedAt + finishedReason=consumed.
    */
@@ -281,6 +328,11 @@ export class RecordService {
       .sort((a, b) => a.id - b.id)
       .map((tasteNote) => mapTasteNote(tasteNote));
 
+    // record 응답 내 recipe.usageCount는 0으로 고정(상세 조회 시점에 의미 없음).
+    const recipeResponse = record.recipe
+      ? toRecipeResponse(record.recipe, 0)
+      : null;
+
     return {
       id: record.id,
       cafeId: record.cafe.id,
@@ -293,6 +345,8 @@ export class RecordService {
       cups: null,
       brewedAt: record.brewedAt,
       loggedAt: record.loggedAt,
+      memo: record.memo,
+      recipe: recipeResponse,
       tasteNotes,
       beans: recordBeans.map((recordBean) => ({
         beanId: recordBean.cafeBean.id,

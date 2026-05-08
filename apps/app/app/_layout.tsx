@@ -57,6 +57,8 @@ export default function RootLayout() {
                 <Stack.Screen name="account" />
                 <Stack.Screen name="cafe-settings" />
                 <Stack.Screen name="notifications" />
+                <Stack.Screen name="recipes" />
+                <Stack.Screen name="recipes/[id]" />
               </Stack>
             </AuthGate>
             <DeepLinkHandler />

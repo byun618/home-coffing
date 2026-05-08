@@ -1,3 +1,24 @@
+// Recipe / Equipment — shared-types에서 단일 진실. 클라이언트는 그대로 re-export.
+export type {
+  RecipeResponse,
+  RecipeMethod,
+  RecipeCreateRequest,
+  RecipeUpdateRequest,
+  RecipeEquipmentInfo,
+  BrewingParams,
+  PourOverParams,
+  EspressoParams,
+  FrenchPressParams,
+  AeropressParams,
+  PourStage,
+  PourStyle,
+  EquipmentResponse,
+  EquipmentType,
+  EquipmentCreateRequest,
+} from "@home-coffing/shared-types";
+
+import type { RecipeResponse } from "@home-coffing/shared-types";
+
 export type CafeRole = "admin" | "member";
 
 export interface UserMe {
@@ -83,6 +104,8 @@ export interface Record {
   cups: number | null;
   brewedAt: string;
   loggedAt: string;
+  memo: string | null;
+  recipe: RecipeResponse | null;
   tasteNotes: TasteNoteResponse[];
   beans: Array<{
     beanId: number;

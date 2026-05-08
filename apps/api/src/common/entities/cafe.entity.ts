@@ -8,7 +8,7 @@ import {
 } from '@mikro-orm/core';
 import { CafeUser } from './cafe-user.entity';
 import { CafeBean } from './cafe-bean.entity';
-import { CafeEquipment } from './cafe-equipment.entity';
+import { Recipe } from './recipe.entity';
 import { Record as RecordEntity } from './record.entity';
 import { Invitation } from './invitation.entity';
 
@@ -19,7 +19,7 @@ export class Cafe {
     | 'createdAt'
     | 'members'
     | 'cafeBeans'
-    | 'cafeEquipments'
+    | 'recipes'
     | 'records'
     | 'invitations';
 
@@ -35,8 +35,8 @@ export class Cafe {
   @OneToMany(() => CafeBean, (cafeBean) => cafeBean.cafe)
   cafeBeans = new Collection<CafeBean>(this);
 
-  @OneToMany(() => CafeEquipment, (cafeEquipment) => cafeEquipment.cafe)
-  cafeEquipments = new Collection<CafeEquipment>(this);
+  @OneToMany(() => Recipe, (recipe) => recipe.cafe)
+  recipes = new Collection<Recipe>(this);
 
   @OneToMany(() => RecordEntity, (record) => record.cafe)
   records = new Collection<RecordEntity>(this);

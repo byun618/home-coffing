@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import {
   ArrowLeft,
   ChevronRight,
+  Coffee,
   LogOut,
   UserPlus,
 } from "lucide-react-native";
@@ -178,6 +179,31 @@ export default function CafeSettingsScreen() {
                 수정
               </Text>
             ) : null}
+          </Pressable>
+        </View>
+
+        {/* 카페 자원 */}
+        <View style={{ paddingTop: 24, paddingHorizontal: 24, gap: 8 }}>
+          <Text className="text-[12px] font-pretendard-semibold text-text-tertiary">
+            카페 자원
+          </Text>
+          <Pressable
+            onPress={() => router.push("/recipes")}
+            className="bg-bg-secondary flex-row items-center justify-between active:opacity-80"
+            style={{ borderRadius: 16, padding: 18 }}
+          >
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+              <Coffee size={18} color="#3A2419" />
+              <View>
+                <Text className="text-[15px] font-pretendard-bold text-text-primary">
+                  내 레시피 관리
+                </Text>
+                <Text className="text-[12px] font-pretendard text-text-tertiary mt-0.5">
+                  brewing 프리셋 등록·수정·삭제
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color="#7B6A5C" />
           </Pressable>
         </View>
 

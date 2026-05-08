@@ -4,11 +4,8 @@ export enum EntitySource {
 }
 
 export enum RecipeMethod {
-  V60 = 'v60',
-  SWITCH = 'switch',
+  POUR_OVER = 'pour-over',
   ESPRESSO = 'espresso',
-  MOKA = 'moka',
+  FRENCH_PRESS = 'french-press',
   AEROPRESS = 'aeropress',
-  FRENCH_PRESS = 'french_press',
-  OTHER = 'other',
 }

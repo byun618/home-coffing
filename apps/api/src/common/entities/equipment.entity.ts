@@ -1,16 +1,12 @@
 import {
-  Collection,
   Entity,
   Enum,
   ManyToOne,
-  OneToMany,
   OptionalProps,
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
 import { User } from './user.entity';
-import { CafeEquipment } from './cafe-equipment.entity';
-import { EntitySource } from './enums';
 
 export enum EquipmentType {
   GRINDER = 'grinder',
@@ -21,12 +17,7 @@ export enum EquipmentType {
 
 @Entity()
 export class Equipment {
-  [OptionalProps]?:
-    | 'brand'
-    | 'model'
-    | 'createdBy'
-    | 'createdAt'
-    | 'cafeEquipments';
+  [OptionalProps]?: 'brand' | 'model' | 'createdBy' | 'createdAt';
 
   @PrimaryKey({ autoincrement: true })
   id!: number;
@@ -43,14 +34,8 @@ export class Equipment {
   @Property({ length: 80, nullable: true })
   model: string | null = null;
 
-  @Enum(() => EntitySource)
-  source!: EntitySource;
-
   @ManyToOne(() => User, { nullable: true, deleteRule: 'set null' })
   createdBy: User | null = null;
-
-  @OneToMany(() => CafeEquipment, (cafeEquipment) => cafeEquipment.equipment)
-  cafeEquipments = new Collection<CafeEquipment>(this);
 
   @Property()
   createdAt: Date = new Date();

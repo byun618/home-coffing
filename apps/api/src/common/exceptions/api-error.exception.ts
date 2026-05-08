@@ -59,4 +59,9 @@ export const Errors = {
   },
   NOT_FOUND: { code: 'NOT_FOUND', message: '찾을 수 없어요' },
   FORBIDDEN: { code: 'FORBIDDEN', message: '권한이 없어요' },
+  INVALID_RECIPE_PARAMS: {
+    code: 'INVALID_RECIPE_PARAMS',
+    message: '레시피 입력값이 올바르지 않아요',
+    field: 'params',
+  },
 } as const;

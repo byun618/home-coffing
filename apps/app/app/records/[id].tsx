@@ -22,17 +22,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomSheet } from "../../src/components/BottomSheet";
 import { ConfirmDialog } from "../../src/components/ConfirmDialog";
 import { MemberAvatar } from "../../src/components/MemberAvatar";
+import { RecipeChip } from "../../src/components/RecipeChip";
+import { RecipeWizardSheet } from "../../src/components/sheets/RecipeWizardSheet";
 import { RecordEditSheet } from "../../src/components/sheets/RecordEditSheet";
 import { TasteNoteSheet } from "../../src/components/sheets/TasteNoteSheet";
 import { useBeansList } from "../../src/lib/queries/beans";
+import { useRecipes } from "../../src/lib/queries/recipes";
 import {
   useDeleteRecord,
   useRecordDetail,
+  useUpdateRecord,
 } from "../../src/lib/queries/records";
+import {
+  formatMethodLabel,
+  formatRecipePlaceholder,
+  formatRecipeSummary,
+} from "../../src/lib/recipe-format";
 import { showSuccess } from "../../src/lib/stores/alert-store";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 import { showToast } from "../../src/lib/stores/toast-store";
-import type { TasteNoteResponse } from "../../src/lib/types";
+import type { RecipeResponse, TasteNoteResponse } from "../../src/lib/types";
 import { formatGrams, formatRelative } from "../../src/lib/format";
 
 function brewedAtLabel(iso: string): string {
@@ -68,11 +77,28 @@ export default function RecordDetailScreen() {
   const activeCafeId = useAuthStore((state) => state.activeCafeId);
   const beansQuery = useBeansList(activeCafeId);
   const deleteMutation = useDeleteRecord();
+  const updateMutation = useUpdateRecord(recordId);
+  const recipesQuery = useRecipes(activeCafeId);
 
   const [actionsOpen, setActionsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [tasteSheet, setTasteSheet] = useState<SheetState>({ kind: "closed" });
+  const [recipePickerOpen, setRecipePickerOpen] = useState(false);
+  const [recipeWizardOpen, setRecipeWizardOpen] = useState(false);
+
+  async function applyRecipe(recipeId: number | null) {
+    setRecipePickerOpen(false);
+    try {
+      await updateMutation.mutateAsync({ recipeId });
+      showSuccess(
+        recipeId === null ? "변경 완료" : "적용 완료",
+        recipeId === null ? "레시피를 해제했어요" : "레시피를 적용했어요",
+      );
+    } catch {
+      showToast("변경에 실패했어요", "error");
+    }
+  }
 
   if (recordQuery.isLoading || !recordQuery.data) {
     return (
@@ -225,6 +251,21 @@ export default function RecordDetailScreen() {
             </View>
           )}
 
+          {/* Recipe card — body tap → R1 / "변경" link → selector */}
+          {record.recipe ? (
+            <RecipeBoundCard
+              recipe={record.recipe}
+              isMine={isMine}
+              onTapBody={(recipeId) => router.push(`/recipes/${recipeId}`)}
+              onTapChange={() => setRecipePickerOpen(true)}
+            />
+          ) : isMine ? (
+            <RecipeChip
+              recipe={null}
+              onTap={() => setRecipePickerOpen(true)}
+            />
+          ) : null}
+
           {/* Taste notes section */}
           <View className="gap-3">
             <View className="flex-row items-center" style={{ gap: 6 }}>
@@ -355,6 +396,91 @@ export default function RecordDetailScreen() {
         />
       ) : null}
 
+      <BottomSheet
+        visible={recipePickerOpen}
+        onClose={() => setRecipePickerOpen(false)}
+        title="레시피 선택"
+      >
+        <View className="gap-2 pt-2 pb-4">
+          {(recipesQuery.data ?? []).map((recipe: RecipeResponse) => {
+            const isCurrent = record.recipe?.id === recipe.id;
+            return (
+              <Pressable
+                key={recipe.id}
+                onPress={() => applyRecipe(recipe.id)}
+                className="bg-bg-secondary border border-divider active:opacity-80"
+                style={{
+                  borderRadius: 14,
+                  padding: 14,
+                  gap: 4,
+                  backgroundColor: isCurrent ? "#EFE3D5" : undefined,
+                }}
+              >
+                <Text
+                  className="text-[14px] font-pretendard-semibold text-text-primary"
+                  numberOfLines={1}
+                >
+                  {recipe.name?.trim() || formatRecipePlaceholder(recipe)}
+                </Text>
+                <Text
+                  className="text-[12px] font-pretendard text-text-secondary"
+                  numberOfLines={1}
+                >
+                  {formatMethodLabel(recipe.method)} ·{" "}
+                  {formatRecipeSummary(recipe)}
+                </Text>
+              </Pressable>
+            );
+          })}
+
+          {record.recipe ? (
+            <Pressable
+              onPress={() => applyRecipe(null)}
+              className="active:opacity-80"
+              style={{ paddingVertical: 12, paddingHorizontal: 4 }}
+            >
+              <Text className="text-[14px] font-pretendard-medium text-text-tertiary">
+                선택 해제
+              </Text>
+            </Pressable>
+          ) : null}
+
+          <Pressable
+            onPress={() => {
+              setRecipePickerOpen(false);
+              setRecipeWizardOpen(true);
+            }}
+            className="bg-bg-secondary items-center justify-center active:opacity-80"
+            style={{
+              borderRadius: 14,
+              borderWidth: 1,
+              borderStyle: "dashed",
+              borderColor: "#A89A8C",
+              paddingVertical: 14,
+              flexDirection: "row",
+              gap: 6,
+            }}
+          >
+            <Plus size={14} color="#3A2419" />
+            <Text className="text-[13px] font-pretendard-semibold text-accent">
+              새 레시피
+            </Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
+
+      {activeCafeId !== null ? (
+        <RecipeWizardSheet
+          visible={recipeWizardOpen}
+          onClose={() => setRecipeWizardOpen(false)}
+          cafeId={activeCafeId}
+          onSaved={(recipe) => {
+            setRecipeWizardOpen(false);
+            applyRecipe(recipe.id);
+          }}
+        />
+      ) : null}
+
       <ConfirmDialog
         visible={confirmDelete}
         title="기록을 삭제할까요?"
@@ -365,6 +491,63 @@ export default function RecordDetailScreen() {
         onCancel={() => setConfirmDelete(false)}
       />
     </SafeAreaView>
+  );
+}
+
+function RecipeBoundCard({
+  recipe,
+  isMine,
+  onTapBody,
+  onTapChange,
+}: {
+  recipe: RecipeResponse;
+  isMine: boolean;
+  onTapBody: (recipeId: number) => void;
+  onTapChange: () => void;
+}) {
+  return (
+    <View
+      className="bg-accent flex-row items-center"
+      style={{
+        minHeight: 60,
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        gap: 8,
+      }}
+    >
+      <Pressable
+        onPress={() => onTapBody(recipe.id)}
+        className="flex-1 active:opacity-80"
+        style={{ gap: 2 }}
+      >
+        <Text
+          className="text-[15px] font-pretendard-bold text-text-on-dark"
+          numberOfLines={1}
+        >
+          {recipe.name?.trim() || formatRecipePlaceholder(recipe)}
+        </Text>
+        <Text
+          className="text-[11px] font-pretendard"
+          style={{ color: "#D9C5B0" }}
+          numberOfLines={1}
+        >
+          {formatRecipeSummary(recipe)}
+        </Text>
+      </Pressable>
+      {isMine ? (
+        <Pressable
+          onPress={onTapChange}
+          hitSlop={6}
+          className="active:opacity-80"
+          style={{ paddingHorizontal: 8, paddingVertical: 6 }}
+        >
+          <Text className="text-[12px] font-pretendard-semibold text-text-on-dark">
+            변경
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 

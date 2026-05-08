@@ -1,7 +1,8 @@
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { ChevronDown, X as XIcon } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { ChevronDown, Plus, Settings, X as XIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   Platform,
@@ -14,12 +15,23 @@ import {
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
 import { useCreateRecord } from "../../lib/queries/records";
+import {
+  useLastUsedRecipeId,
+  useRecipes,
+} from "../../lib/queries/recipes";
+import {
+  formatMethodLabel,
+  formatRecipePlaceholder,
+  formatRecipeSummary,
+} from "../../lib/recipe-format";
 import { showSuccess } from "../../lib/stores/alert-store";
-import type { Bean } from "../../lib/types";
+import type { Bean, RecipeResponse } from "../../lib/types";
 import { formatGrams } from "../../lib/format";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
+import { RecipeChip } from "../RecipeChip";
 import { PrimaryButton } from "../form/PrimaryButton";
+import { RecipeWizardSheet } from "./RecipeWizardSheet";
 
 interface Props {
   visible: boolean;
@@ -40,8 +52,15 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
   const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<number | null>(null);
+  const [recipeDropdownOpen, setRecipeDropdownOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [recipeTouched, setRecipeTouched] = useState(false);
 
+  const router = useRouter();
   const createMutation = useCreateRecord(cafeId);
+  const recipesQuery = useRecipes(cafeId);
+  const lastUsedRecipeId = useLastUsedRecipeId(cafeId);
 
   useEffect(() => {
     if (visible) {
@@ -55,8 +74,18 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
       setShowPicker(false);
       setError(null);
       setPickerFor(null);
+      setRecipeDropdownOpen(false);
+      setRecipeTouched(false);
+      setSelectedRecipeId(null);
     }
   }, [visible, beans]);
+
+  // 레시피 prefill — 사용자가 직접 만지기 전에만 last-used로 채움
+  useEffect(() => {
+    if (!visible) return;
+    if (recipeTouched) return;
+    setSelectedRecipeId(lastUsedRecipeId);
+  }, [visible, lastUsedRecipeId, recipeTouched]);
 
   function updateEntry(index: number, patch: Partial<BeanEntry>) {
     setEntries((prev) =>
@@ -109,7 +138,8 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
 
   const isDirty =
     entries.some((entry) => entry.beanId > 0 || entry.grams.length > 0) ||
-    timeMode === "custom";
+    timeMode === "custom" ||
+    recipeTouched;
   const close = useDirtyClose(isDirty, onClose);
 
   const isLoading = createMutation.isPending;
@@ -127,6 +157,7 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           grams: Number(entry.grams),
         })),
         brewedAt: (timeMode === "now" ? new Date() : brewedAt).toISOString(),
+        recipeId: selectedRecipeId,
       });
       showSuccess("저장 완료", "오늘의 한 잔이 기록됐어요");
       onClose();
@@ -316,6 +347,127 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           ) : null}
         </View>
 
+        <View className="gap-1.5">
+          <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+            레시피
+          </Text>
+          <RecipeChip
+            recipe={
+              recipesQuery.data?.find((r) => r.id === selectedRecipeId) ?? null
+            }
+            onTap={() => {
+              const hasSelection = selectedRecipeId !== null;
+              if (!hasSelection) {
+                setWizardOpen(true);
+              } else {
+                setRecipeDropdownOpen((v) => !v);
+              }
+            }}
+          />
+          {recipeDropdownOpen ? (
+            <View
+              className="bg-bg-secondary"
+              style={{
+                borderRadius: 14,
+                marginTop: 6,
+                paddingVertical: 6,
+              }}
+            >
+              {(recipesQuery.data ?? []).map((recipe) => {
+                const isCurrent = recipe.id === selectedRecipeId;
+                return (
+                  <Pressable
+                    key={recipe.id}
+                    onPress={() => {
+                      setSelectedRecipeId(recipe.id);
+                      setRecipeTouched(true);
+                      setRecipeDropdownOpen(false);
+                    }}
+                    className="active:opacity-80"
+                    style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      gap: 2,
+                      backgroundColor: isCurrent ? "#EFE3D5" : "transparent",
+                    }}
+                  >
+                    <Text
+                      className="text-[14px] font-pretendard-semibold text-text-primary"
+                      numberOfLines={1}
+                    >
+                      {recipe.name?.trim() || formatRecipePlaceholder(recipe)}
+                    </Text>
+                    <Text
+                      className="text-[12px] font-pretendard text-text-secondary"
+                      numberOfLines={1}
+                    >
+                      {formatMethodLabel(recipe.method)} ·{" "}
+                      {formatRecipeSummary(recipe)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+
+              {selectedRecipeId !== null ? (
+                <Pressable
+                  onPress={() => {
+                    setSelectedRecipeId(null);
+                    setRecipeTouched(true);
+                    setRecipeDropdownOpen(false);
+                  }}
+                  className="active:opacity-80"
+                  style={{ paddingHorizontal: 14, paddingVertical: 10 }}
+                >
+                  <Text className="text-[13px] font-pretendard-medium text-text-tertiary">
+                    선택 해제
+                  </Text>
+                </Pressable>
+              ) : null}
+
+              <View
+                className="bg-divider"
+                style={{ height: 1, marginVertical: 4 }}
+              />
+
+              <Pressable
+                onPress={() => {
+                  setRecipeDropdownOpen(false);
+                  setWizardOpen(true);
+                }}
+                className="flex-row items-center active:opacity-80"
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  gap: 6,
+                }}
+              >
+                <Plus size={14} color="#3A2419" />
+                <Text className="text-[13px] font-pretendard-semibold text-accent">
+                  새 레시피
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setRecipeDropdownOpen(false);
+                  onClose();
+                  router.push("/recipes");
+                }}
+                className="flex-row items-center active:opacity-80"
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  gap: 6,
+                }}
+              >
+                <Settings size={14} color="#7B6A5C" />
+                <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+                  내 레시피 관리
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+
         {error ? (
           <Text className="text-[13px] font-pretendard text-danger">
             {error}
@@ -346,6 +498,17 @@ export function QuickRecordSheet({ visible, onClose, cafeId, beans }: Props) {
           onClose={() => setPickerFor(null)}
         />
       ) : null}
+
+      <RecipeWizardSheet
+        visible={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        cafeId={cafeId}
+        onSaved={(recipe: RecipeResponse) => {
+          setSelectedRecipeId(recipe.id);
+          setRecipeTouched(true);
+          setWizardOpen(false);
+        }}
+      />
 
       <ConfirmDialog
         visible={close.confirming}
