@@ -11,7 +11,6 @@ import { Cafe } from './cafe.entity';
 import { User } from './user.entity';
 import { Recipe } from './recipe.entity';
 import { RecordBean } from './record-bean.entity';
-import { RecordEquipment } from './record-equipment.entity';
 import { TasteNote } from './taste-note.entity';
 
 @Entity({ tableName: 'record' })
@@ -22,7 +21,6 @@ export class Record {
     | 'loggedAt'
     | 'createdAt'
     | 'recordBeans'
-    | 'recordEquipments'
     | 'tasteNotes';
 
   @PrimaryKey({ autoincrement: true })
@@ -50,13 +48,6 @@ export class Record {
     orphanRemoval: true,
   })
   recordBeans = new Collection<RecordBean>(this);
-
-  @OneToMany(
-    () => RecordEquipment,
-    (recordEquipment) => recordEquipment.record,
-    { orphanRemoval: true },
-  )
-  recordEquipments = new Collection<RecordEquipment>(this);
 
   @OneToMany(() => TasteNote, (tasteNote) => tasteNote.record, {
     orphanRemoval: true,

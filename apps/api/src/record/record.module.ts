@@ -3,6 +3,8 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import {
   CafeBean,
   CafeUser,
+  Recipe,
+  RecipeEquipment,
   Record as RecordEntity,
   RecordBean,
   TasteNote,
@@ -18,6 +20,8 @@ import { RecordService } from './record.service';
       RecordBean,
       CafeBean,
       CafeUser,
+      Recipe,
+      RecipeEquipment,
       TasteNote,
       User,
     ]),
