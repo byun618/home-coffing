@@ -121,25 +121,28 @@ export function RecordEditSheet({
   }
 
   // 활성 리스트에 없는 record 참조 원두도 picker에 표시
-  const beansForPicker = (() => {
-    const map = new Map<
-      number,
-      Pick<Bean, "id" | "name" | "remainGrams" | "rop">
-    >();
-    for (const bean of beans) map.set(bean.id, bean);
+  // RecordResponse.beans는 catalog id가 아닌 CafeBean(봉지) id 참조이므로,
+  // 활성 봉지 list에 없는 봉지는 record에서 받은 name을 fallback으로 사용.
+  interface PickerBean {
+    id: number;
+    name: string;
+    remainGrams: number;
+  }
+  const beansForPicker: PickerBean[] = (() => {
+    const map = new Map<number, PickerBean>();
+    for (const cafeBean of beans) {
+      map.set(cafeBean.id, {
+        id: cafeBean.id,
+        name: cafeBean.bean.name,
+        remainGrams: cafeBean.remainGrams,
+      });
+    }
     for (const beanInRecord of record.beans) {
       if (!map.has(beanInRecord.beanId)) {
         map.set(beanInRecord.beanId, {
           id: beanInRecord.beanId,
           name: beanInRecord.beanName,
           remainGrams: 0,
-          rop: {
-            status: "paused",
-            cupsRemaining: 0,
-            daysRemaining: null,
-            dailyGrams: 0,
-            source: "fallback",
-          },
         });
       }
     }

@@ -1,6 +1,6 @@
-# Client Stack — apps/app (Expo) + apps/web (Next.js)
+# Client Stack — apps/app (Expo)
 
-> client-engineer가 작업 시 참고. **Expo 앱이 메인**, Next.js는 dev-plan에 명시될 때만.
+> client-engineer가 작업 시 참고. **Expo 앱이 단일 클라이언트** (T005에서 apps/web 폐기).
 
 ## apps/app — Expo SDK 54
 
@@ -68,22 +68,6 @@ export function useBeans() {
 - `apps/app/.env`의 `EXPO_PUBLIC_API_URL`
 - EAS Build는 `eas.json`의 `env` 블록 (별도 동기화 필요)
 - 로컬 dev에서도 Cloudflare Tunnel URL 권장 (LTE/WiFi 무관)
-
-## apps/web — Next.js 15
-
-### 디렉토리
-
-```
-apps/web/src/
-├── app/          # App Router
-├── components/
-├── lib/
-└── styles/
-```
-
-### 보조 위치
-
-dev-plan에 web 작업이 명시된 경우만 진행. 그렇지 않으면 `apps/app/`만.
 
 ## shared-types 사용
 

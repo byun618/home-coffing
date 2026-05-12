@@ -1,4 +1,4 @@
-// Recipe / Equipment — shared-types에서 단일 진실. 클라이언트는 그대로 re-export.
+// Recipe / Equipment / Bean — shared-types에서 단일 진실. 클라이언트는 그대로 re-export.
 export type {
   RecipeResponse,
   RecipeMethod,
@@ -15,9 +15,21 @@ export type {
   EquipmentResponse,
   EquipmentType,
   EquipmentCreateRequest,
+  BeanType,
+  BeanProcess,
+  BeanCatalogItem,
+  BeanFinishedReason,
+  RopStatus,
+  RopInfo,
+  CafeBeanResponse,
+  CafeBeanCreateRequest,
+  CafeBeanUpdateRequest,
 } from "@home-coffing/shared-types";
 
-import type { RecipeResponse } from "@home-coffing/shared-types";
+import type {
+  CafeBeanResponse,
+  RecipeResponse,
+} from "@home-coffing/shared-types";
 
 export type CafeRole = "admin" | "member";
 
@@ -45,39 +57,9 @@ export interface AuthTokensResponse {
   };
 }
 
-export type RopStatus = "fresh" | "soon" | "urgent" | "paused";
-
-export interface RopInfo {
-  status: RopStatus;
-  cupsRemaining: number;
-  daysRemaining: number | null;
-  dailyGrams: number;
-  source: "measured" | "fallback";
-}
-
-export type BeanFinishedReason = "consumed" | "discarded";
-
-export interface Bean {
-  id: number;
-  cafeId: number;
-  name: string;
-  origin: string | null;
-  roaster: { id: number; name: string } | null;
-  totalGrams: number;
-  remainGrams: number;
-  orderedAt: string;
-  roastedOn: string;
-  arrivedAt: string | null;
-  degassingDays: number;
-  cupsPerDay: number;
-  gramsPerCup: number;
-  autoRopEnabled: boolean;
-  finishedAt: string | null;
-  finishedReason: BeanFinishedReason | null;
-  archivedAt: string | null;
-  createdAt: string;
-  rop: RopInfo;
-}
+// T005 — Bean = CafeBeanResponse (한 봉지). bean catalog 정보는 bean.bean.{name,type,process,...}.
+// shared-types와 정합: Bean alias 유지로 호출처 변경 최소화. 새 코드는 CafeBeanResponse 직접 사용 권장.
+export type Bean = CafeBeanResponse;
 
 export interface TasteNoteResponse {
   id: number;

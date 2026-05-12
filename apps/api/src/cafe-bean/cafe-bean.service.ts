@@ -6,15 +6,13 @@ import {
   CafeUser,
   EntitySource,
   RecordBean,
-  Roaster,
-  User,
 } from '../common/entities';
 import { ApiError, Errors } from '../common/exceptions/api-error.exception';
 import {
-  BeanResponse,
-  CreateBeanDto,
+  CafeBeanResponse,
+  CreateCafeBeanDto,
   RopInfo,
-  UpdateBeanDto,
+  UpdateCafeBeanDto,
 } from './dto';
 
 const ROP_GRACE_DAYS = 7;
@@ -23,10 +21,10 @@ const ROP_URGENT_DAYS = 3;
 const ROP_SOON_DAYS = 7;
 
 @Injectable()
-export class BeanService {
+export class CafeBeanService {
   constructor(private readonly em: EntityManager) {}
 
-  async listActiveBeans(cafeId: number): Promise<BeanResponse[]> {
+  async listActiveCafeBeans(cafeId: number): Promise<CafeBeanResponse[]> {
     const cafeBeans = await this.em.find(
       CafeBean,
       {
@@ -35,7 +33,7 @@ export class BeanService {
         finishedAt: null,
       },
       {
-        populate: ['bean', 'bean.roaster'],
+        populate: ['bean'],
         orderBy: { createdAt: 'DESC' },
       },
     );
@@ -43,34 +41,21 @@ export class BeanService {
     return Promise.all(cafeBeans.map((cafeBean) => this.toResponse(cafeBean)));
   }
 
-  async getBean(cafeBeanId: number, userId: number): Promise<BeanResponse> {
+  async getCafeBean(
+    cafeBeanId: number,
+    userId: number,
+  ): Promise<CafeBeanResponse> {
     const cafeBean = await this.findCafeBeanWithMembership(cafeBeanId, userId);
     return this.toResponse(cafeBean);
   }
 
-  async createBean(
+  async createCafeBean(
     cafeId: number,
     userId: number,
-    dto: CreateBeanDto,
-  ): Promise<BeanResponse> {
+    dto: CreateCafeBeanDto,
+  ): Promise<CafeBeanResponse> {
     return this.em.transactional(async (em) => {
-      const roaster = dto.roasterId
-        ? await em.findOne(Roaster, { id: dto.roasterId })
-        : null;
-      if (dto.roasterId && !roaster) {
-        throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
-      }
-
-      const createdBy = await em.findOne(User, { id: userId });
-
-      const bean = em.create(Bean, {
-        name: dto.name,
-        origin: dto.origin ?? null,
-        roaster,
-        source: EntitySource.CAFE,
-        createdBy,
-      });
-      em.persist(bean);
+      const bean = await this.findCatalogBean(em, dto.beanId);
 
       const cafeBean = em.create(CafeBean, {
         cafe: cafeId,
@@ -87,16 +72,20 @@ export class BeanService {
       });
       em.persist(cafeBean);
 
+      // 사용자 식별을 위해 createdBy를 박는 곳은 cafeBean 자체엔 없음 (cafe membership으로 추적).
+      // userId 사용처는 향후 audit log 등 필요해질 때 검토.
+      void userId;
+
       await em.flush();
       return this.toResponse(cafeBean);
     });
   }
 
-  async updateBean(
+  async updateCafeBean(
     cafeBeanId: number,
     userId: number,
-    dto: UpdateBeanDto,
-  ): Promise<BeanResponse> {
+    dto: UpdateCafeBeanDto,
+  ): Promise<CafeBeanResponse> {
     return this.em.transactional(async (em) => {
       const cafeBean = await this.findCafeBeanWithMembership(
         cafeBeanId,
@@ -104,36 +93,9 @@ export class BeanService {
         em,
       );
 
-      // dev-plan 4-1: dto.name 변경 시 새 Bean 글로벌 row 생성 + CafeBean.bean FK 재배선.
-      // origin/roaster는 기존 Bean에 in-place 적용 (002 단계에선 글로벌 Bean을 1:1로 사용 — 공유 우려 없음).
-      const renamedToNewBean =
-        dto.name !== undefined && dto.name !== cafeBean.bean.name;
-
-      if (renamedToNewBean) {
-        const createdBy = await em.findOne(User, { id: userId });
-        const newBean = em.create(Bean, {
-          name: dto.name!,
-          origin:
-            dto.origin !== undefined ? dto.origin : cafeBean.bean.origin,
-          roaster:
-            dto.roasterId !== undefined
-              ? await this.resolveRoaster(em, dto.roasterId)
-              : cafeBean.bean.roaster,
-          source: EntitySource.CAFE,
-          createdBy,
-        });
-        em.persist(newBean);
-        cafeBean.bean = newBean;
-      } else {
-        if (dto.origin !== undefined) {
-          cafeBean.bean.origin = dto.origin;
-        }
-        if (dto.roasterId !== undefined) {
-          cafeBean.bean.roaster = await this.resolveRoaster(
-            em,
-            dto.roasterId,
-          );
-        }
+      // beanId 변경 시 catalog 재배선
+      if (dto.beanId !== undefined && dto.beanId !== cafeBean.bean.id) {
+        cafeBean.bean = await this.findCatalogBean(em, dto.beanId);
       }
 
       // totalGrams 변경 시 remainGrams도 같은 delta만큼 조정 (음수 방지)
@@ -148,7 +110,7 @@ export class BeanService {
         );
       }
 
-      const updatable: Array<keyof UpdateBeanDto> = [
+      const updatable: Array<keyof UpdateCafeBeanDto> = [
         'totalGrams',
         'orderedAt',
         'roastedOn',
@@ -171,16 +133,19 @@ export class BeanService {
     });
   }
 
-  private async resolveRoaster(
+  private async findCatalogBean(
     em: EntityManager,
-    roasterId: number | null | undefined,
-  ): Promise<Roaster | null> {
-    if (roasterId === null || roasterId === undefined) return null;
-    const roaster = await em.findOne(Roaster, { id: roasterId });
-    if (!roaster) {
+    beanId: number,
+  ): Promise<Bean> {
+    const bean = await em.findOne(Bean, { id: beanId });
+    if (!bean) {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
     }
-    return roaster;
+    if (bean.source !== EntitySource.GLOBAL) {
+      // 005 이후 신규 CafeBean은 운영자 catalog(=GLOBAL)만 참조해야 함.
+      throw new ApiError(HttpStatus.BAD_REQUEST, Errors.NOT_FOUND);
+    }
+    return bean;
   }
 
   private async findCafeBeanWithMembership(
@@ -191,7 +156,7 @@ export class BeanService {
     const cafeBean = await em.findOne(
       CafeBean,
       { id: cafeBeanId },
-      { populate: ['cafe', 'bean', 'bean.roaster'] },
+      { populate: ['cafe', 'bean'] },
     );
     if (!cafeBean) {
       throw new ApiError(HttpStatus.NOT_FOUND, Errors.NOT_FOUND);
@@ -287,17 +252,19 @@ export class BeanService {
     };
   }
 
-  private async toResponse(cafeBean: CafeBean): Promise<BeanResponse> {
+  private async toResponse(cafeBean: CafeBean): Promise<CafeBeanResponse> {
     const rop = await this.computeRop(cafeBean);
     const bean = cafeBean.bean;
     return {
       id: cafeBean.id,
       cafeId: cafeBean.cafe.id,
-      name: bean.name,
-      origin: bean.origin,
-      roaster: bean.roaster
-        ? { id: bean.roaster.id, name: bean.roaster.name }
-        : null,
+      bean: {
+        id: bean.id,
+        name: bean.name,
+        type: bean.type,
+        process: bean.process,
+        tastingNote: bean.tastingNote,
+      },
       totalGrams: Number(cafeBean.totalGrams),
       remainGrams: Number(cafeBean.remainGrams),
       orderedAt: cafeBean.orderedAt,

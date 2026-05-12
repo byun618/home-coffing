@@ -26,7 +26,7 @@ import { RecipeChip } from "../../src/components/RecipeChip";
 import { RecipeWizardSheet } from "../../src/components/sheets/RecipeWizardSheet";
 import { RecordEditSheet } from "../../src/components/sheets/RecordEditSheet";
 import { TasteNoteSheet } from "../../src/components/sheets/TasteNoteSheet";
-import { useBeansList } from "../../src/lib/queries/beans";
+import { useBeansList } from "../../src/lib/queries/cafe-beans";
 import { useRecipes } from "../../src/lib/queries/recipes";
 import {
   useDeleteRecord,

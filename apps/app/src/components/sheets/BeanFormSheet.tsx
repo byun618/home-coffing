@@ -1,5 +1,6 @@
+import { ChevronRight, Coffee } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { ApiError } from "../../lib/api";
 import { useDirtyClose } from "../../lib/hooks/useDirtyClose";
@@ -8,15 +9,25 @@ import {
   useUpdateBean,
   type CreateBeanInput,
   type UpdateBeanInput,
-} from "../../lib/queries/beans";
+} from "../../lib/queries/cafe-beans";
 import { showSuccess } from "../../lib/stores/alert-store";
-import type { Bean } from "../../lib/types";
+import type {
+  Bean,
+  BeanCatalogItem,
+  BeanProcess,
+  BeanType,
+} from "../../lib/types";
 import { BottomSheet } from "../BottomSheet";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { DateField } from "../form/DateField";
 import { NumberField } from "../form/NumberField";
 import { PrimaryButton } from "../form/PrimaryButton";
-import { TextField } from "../form/TextField";
+import { BeanCatalogPickerSheet } from "./BeanCatalogPickerSheet";
+
+// T005 — B-add-bag (mockup.md):
+//   - 이름/원산지 TextField 제거
+//   - catalog selector chip 추가 (필수)
+//   - edit mode (Q8): chip read-only — catalog 변경은 별 ticket
 
 type Mode =
   | { kind: "create"; cafeId: number }
@@ -29,8 +40,7 @@ interface Props {
 }
 
 interface FormState {
-  name: string;
-  origin: string;
+  beanId: number | null;
   totalGrams: string;
   orderedAt: string;
   roastedOn: string;
@@ -42,8 +52,7 @@ interface FormState {
 
 function emptyForm(): FormState {
   return {
-    name: "",
-    origin: "",
+    beanId: null,
     totalGrams: "",
     orderedAt: "",
     roastedOn: "",
@@ -54,36 +63,75 @@ function emptyForm(): FormState {
   };
 }
 
-function formFromBean(bean: Bean): FormState {
+function formFromBean(cafeBean: Bean): FormState {
   return {
-    name: bean.name,
-    origin: bean.origin ?? "",
-    totalGrams: String(bean.totalGrams),
-    orderedAt: bean.orderedAt.slice(0, 10),
-    roastedOn: bean.roastedOn.slice(0, 10),
-    arrivedAt: bean.arrivedAt ? bean.arrivedAt.slice(0, 10) : "",
-    degassingDays: String(bean.degassingDays),
-    cupsPerDay: String(bean.cupsPerDay),
-    gramsPerCup: String(bean.gramsPerCup),
+    beanId: cafeBean.bean.id,
+    totalGrams: String(cafeBean.totalGrams),
+    orderedAt: cafeBean.orderedAt.slice(0, 10),
+    roastedOn: cafeBean.roastedOn.slice(0, 10),
+    arrivedAt: cafeBean.arrivedAt ? cafeBean.arrivedAt.slice(0, 10) : "",
+    degassingDays: String(cafeBean.degassingDays),
+    cupsPerDay: String(cafeBean.cupsPerDay),
+    gramsPerCup: String(cafeBean.gramsPerCup),
   };
+}
+
+function typeLabel(type: BeanType): string {
+  switch (type) {
+    case "single":
+      return "싱글";
+    case "blend":
+      return "블렌드";
+    case "decaf":
+      return "디카페인";
+  }
+}
+
+function processLabel(process: BeanProcess): string {
+  switch (process) {
+    case "washed":
+      return "워시드";
+    case "natural":
+      return "내추럴";
+    case "honey":
+      return "허니";
+    case "anaerobic":
+      return "무산소";
+  }
+}
+
+function beanSubline(beanInfo: {
+  type: BeanType;
+  process: BeanProcess | null;
+}): string {
+  const parts: string[] = [typeLabel(beanInfo.type)];
+  if (beanInfo.process) parts.push(processLabel(beanInfo.process));
+  return parts.join(" · ");
 }
 
 export function BeanFormSheet({ visible, onClose, mode }: Props) {
   const baseline =
     mode.kind === "edit" ? formFromBean(mode.bean) : emptyForm();
   const [form, setForm] = useState<FormState>(() => baseline);
+  // edit mode일 땐 mode.bean.bean이 있고, create mode에선 picker 선택 결과를 여기 저장.
+  const [pickedBean, setPickedBean] = useState<BeanCatalogItem | null>(
+    mode.kind === "edit" ? mode.bean.bean : null,
+  );
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
       setForm(mode.kind === "edit" ? formFromBean(mode.bean) : emptyForm());
+      setPickedBean(mode.kind === "edit" ? mode.bean.bean : null);
       setError(null);
     }
   }, [visible, mode]);
 
-  const isDirty = (Object.keys(baseline) as Array<keyof FormState>).some(
-    (key) => form[key] !== baseline[key],
-  );
+  // dirty 체크 — edit mode는 chip read-only이므로 beanId는 비교 대상 아님 (어차피 동일).
+  const isDirty = (
+    Object.keys(baseline) as Array<keyof FormState>
+  ).some((key) => form[key] !== baseline[key]);
   const close = useDirtyClose(isDirty, onClose);
 
   const createMutation = useCreateBean(
@@ -95,7 +143,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
   const canSubmit =
-    form.name.trim().length > 0 &&
+    pickedBean !== null &&
     Number(form.totalGrams) > 0 &&
     form.orderedAt.length > 0 &&
     form.roastedOn.length > 0 &&
@@ -105,12 +153,18 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function onPickCatalog(bean: BeanCatalogItem) {
+    setPickedBean(bean);
+    set("beanId", bean.id);
+  }
+
   async function onSubmit() {
     setError(null);
+    if (pickedBean === null) return;
+
     if (mode.kind === "create") {
       const input: CreateBeanInput = {
-        name: form.name.trim(),
-        origin: form.origin.trim() || undefined,
+        beanId: pickedBean.id,
         totalGrams: Number(form.totalGrams),
         orderedAt: form.orderedAt,
         roastedOn: form.roastedOn,
@@ -131,9 +185,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
     } else {
       const original = mode.bean;
       const input: UpdateBeanInput = {};
-      if (form.name.trim() !== original.name) input.name = form.name.trim();
-      const newOrigin = form.origin.trim() || undefined;
-      if ((newOrigin ?? null) !== original.origin) input.origin = newOrigin;
+      // beanId는 edit mode에서 read-only — payload에 안 보냄
       if (Number(form.totalGrams) !== original.totalGrams)
         input.totalGrams = Number(form.totalGrams);
       if (form.orderedAt !== original.orderedAt.slice(0, 10))
@@ -144,7 +196,7 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
         ? original.arrivedAt.slice(0, 10)
         : "";
       if (form.arrivedAt !== originalArrived) {
-        input.arrivedAt = form.arrivedAt || undefined;
+        input.arrivedAt = form.arrivedAt || null;
       }
       if (Number(form.degassingDays) !== original.degassingDays)
         input.degassingDays = Number(form.degassingDays);
@@ -163,6 +215,8 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
     }
   }
 
+  const isEdit = mode.kind === "edit";
+
   return (
     <BottomSheet
       visible={visible}
@@ -171,18 +225,26 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
       titleSize="lg"
     >
       <View className="gap-4 pt-2">
-        <TextField
-          label="이름"
-          value={form.name}
-          onChangeText={(v) => set("name", v)}
-          placeholder="예) 에티오피아 예가체프"
-        />
-        <TextField
-          label="원산지 (선택)"
-          value={form.origin}
-          onChangeText={(v) => set("origin", v)}
-          placeholder="예) 에티오피아"
-        />
+        {/* Catalog selector chip */}
+        <View className="gap-1.5">
+          <Text className="text-[13px] font-pretendard-medium text-text-secondary">
+            원두
+          </Text>
+          <CatalogChip
+            bean={pickedBean}
+            readOnly={isEdit}
+            onPress={() => {
+              if (isEdit) return;
+              setPickerOpen(true);
+            }}
+          />
+          {isEdit ? (
+            <Text className="text-[11px] font-pretendard text-text-tertiary">
+              원두 종류는 변경할 수 없어요
+            </Text>
+          ) : null}
+        </View>
+
         <NumberField
           label="전체 용량"
           value={form.totalGrams}
@@ -261,6 +323,13 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
         </View>
       </View>
 
+      <BeanCatalogPickerSheet
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={onPickCatalog}
+        mode="all"
+      />
+
       <ConfirmDialog
         visible={close.confirming}
         title="변경사항이 사라져요"
@@ -271,5 +340,81 @@ export function BeanFormSheet({ visible, onClose, mode }: Props) {
         onCancel={close.cancel}
       />
     </BottomSheet>
+  );
+}
+
+function CatalogChip({
+  bean,
+  readOnly,
+  onPress,
+}: {
+  bean: BeanCatalogItem | null;
+  readOnly: boolean;
+  onPress: () => void;
+}) {
+  if (bean === null) {
+    // empty — B-add-bag empty variant
+    return (
+      <Pressable
+        onPress={onPress}
+        className="bg-bg-secondary flex-row items-center justify-between active:opacity-80"
+        style={{
+          height: 60,
+          borderRadius: 14,
+          paddingHorizontal: 16,
+          borderWidth: 1,
+          borderStyle: "dashed",
+          borderColor: "#A89A8C",
+        }}
+      >
+        <Text className="text-[15px] font-pretendard-medium text-text-tertiary">
+          + 원두 선택
+        </Text>
+        <ChevronRight size={18} color="#A89A8C" />
+      </Pressable>
+    );
+  }
+
+  // filled — B-add-bag filled variant
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={readOnly}
+      className={`flex-row items-center ${
+        readOnly ? "bg-bg-secondary" : "bg-accent-cream active:opacity-80"
+      }`}
+      style={{
+        height: 60,
+        borderRadius: 14,
+        paddingHorizontal: 14,
+        gap: 12,
+      }}
+    >
+      <View
+        className="bg-bg-primary items-center justify-center"
+        style={{ width: 36, height: 36, borderRadius: 10 }}
+      >
+        <Coffee size={18} color="#3A2419" strokeWidth={2} />
+      </View>
+      <View className="flex-1" style={{ gap: 2 }}>
+        <Text
+          className="text-[15px] font-pretendard-semibold text-text-primary"
+          numberOfLines={1}
+        >
+          {bean.name}
+        </Text>
+        <Text
+          className="text-[12px] font-pretendard text-text-secondary"
+          numberOfLines={1}
+        >
+          {beanSubline(bean)}
+        </Text>
+      </View>
+      {readOnly ? null : (
+        <Text className="text-[12px] font-pretendard-medium text-text-secondary">
+          변경
+        </Text>
+      )}
+    </Pressable>
   );
 }

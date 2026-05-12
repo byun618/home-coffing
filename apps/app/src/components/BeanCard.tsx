@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from "react-native";
 
-import type { Bean } from "../lib/types";
+import type { Bean, BeanType } from "../lib/types";
 import { formatDays, formatGrams } from "../lib/format";
 
 interface Props {
@@ -8,11 +8,24 @@ interface Props {
   onPress: () => void;
 }
 
+// T005 (Q10) — subtext에 type만 표시. process는 표시 안 함.
+function formatBeanType(type: BeanType): string {
+  switch (type) {
+    case "single":
+      return "싱글 오리진";
+    case "blend":
+      return "블렌드";
+    case "decaf":
+      return "디카페인";
+  }
+}
+
 /**
  * Home grid Bean Card (mockup KPvvn / creOs 기준)
  * - 200×150, padding 18, radius 20
  * - 일반: bg-bg-secondary, text-text-primary
  * - ROP urgent: bg-accent, text-text-on-dark (강조)
+ * - T005: name 아래 type 라벨 (싱글/블렌드/디카페인) 추가
  */
 export function BeanCard({ bean, onPress }: Props) {
   const isUrgent = bean.rop.status === "urgent";
@@ -22,7 +35,8 @@ export function BeanCard({ bean, onPress }: Props) {
       : 0;
 
   const containerClass = isUrgent ? "bg-accent" : "bg-bg-secondary";
-  const titleClass = isUrgent ? "text-text-on-dark" : "text-text-secondary";
+  const titleClass = isUrgent ? "text-text-on-dark" : "text-text-primary";
+  const subtitleClass = isUrgent ? "text-text-on-dark/70" : "text-text-tertiary";
   const numberClass = isUrgent ? "text-text-on-dark" : "text-text-primary";
   const metaClass = isUrgent ? "text-text-on-dark" : "text-text-secondary";
   const trackClass = isUrgent ? "bg-text-on-dark/30" : "bg-bg-tertiary";
@@ -48,13 +62,19 @@ export function BeanCard({ bean, onPress }: Props) {
       }}
     >
       <Text
-        className={`text-[12px] font-pretendard ${titleClass}`}
+        className={`text-[12px] font-pretendard-semibold ${titleClass}`}
         numberOfLines={1}
       >
-        {bean.name}
+        {bean.bean.name}
       </Text>
       <Text
-        className={`text-[32px] font-pretendard-bold ${numberClass} mt-1`}
+        className={`text-[10px] font-pretendard ${subtitleClass}`}
+        numberOfLines={1}
+      >
+        {formatBeanType(bean.bean.type)}
+      </Text>
+      <Text
+        className={`text-[28px] font-pretendard-bold ${numberClass} mt-1`}
         numberOfLines={1}
       >
         {formatGrams(bean.remainGrams)}

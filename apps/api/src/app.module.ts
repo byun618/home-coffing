@@ -5,7 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { CafeModule } from './cafe/cafe.module';
 import { InvitationModule } from './invitation/invitation.module';
-import { BeanModule } from './bean/bean.module';
+import { CafeBeanModule } from './cafe-bean/cafe-bean.module';
+import { BeanCatalogModule } from './bean-catalog/bean-catalog.module';
 import { RecordModule } from './record/record.module';
 import { RecipeModule } from './recipe/recipe.module';
 import { EquipmentModule } from './equipment/equipment.module';
@@ -22,7 +23,8 @@ import { EventModule } from './event/event.module';
     UserModule,
     CafeModule,
     InvitationModule,
-    BeanModule,
+    BeanCatalogModule,
+    CafeBeanModule,
     RecordModule,
     RecipeModule,
     EquipmentModule,
