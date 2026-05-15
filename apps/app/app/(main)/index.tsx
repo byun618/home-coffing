@@ -17,7 +17,7 @@ import { RecordRow } from "../../src/components/RecordRow";
 import { BeanFormSheet } from "../../src/components/sheets/BeanFormSheet";
 import { CafeSwitcherSheet } from "../../src/components/sheets/CafeSwitcherSheet";
 import { QuickRecordSheet } from "../../src/components/sheets/QuickRecordSheet";
-import { useBeansList } from "../../src/lib/queries/beans";
+import { useBeansList } from "../../src/lib/queries/cafe-beans";
 import { useRecordsList } from "../../src/lib/queries/records";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 import { showToast } from "../../src/lib/stores/toast-store";

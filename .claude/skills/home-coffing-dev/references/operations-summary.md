@@ -36,7 +36,7 @@
 ## 인프라 토폴로지
 
 ```
-[Cloudflare Tunnel] → :3010 (Next.js web) → /api proxy → :3011 (NestJS api) → MySQL :3306
+[Cloudflare Tunnel] → :3011 (NestJS api) → MySQL :3306
 ```
 
 - 맥미니 docker-compose 운영

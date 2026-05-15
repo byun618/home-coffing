@@ -13,7 +13,7 @@ export { Recipe } from './recipe.entity';
 export { RecipeEquipment } from './recipe-equipment.entity';
 export { Equipment, EquipmentType } from './equipment.entity';
 export { DeviceToken, DevicePlatform } from './device-token.entity';
-export { EntitySource, RecipeMethod } from './enums';
+export { EntitySource, RecipeMethod, BeanType, BeanProcess } from './enums';
 export type {
   BrewingParams,
   PourOverParams,

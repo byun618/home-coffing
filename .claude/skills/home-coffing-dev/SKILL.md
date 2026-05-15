@@ -1,11 +1,11 @@
 ---
 name: home-coffing-dev
-description: home-coffing 코드 레포(apps/api, apps/app, apps/web) ticket 기반 개발 사이클 오케스트레이터. "ticket 002 개발 시작", "T003 dev plan 작성", "API bean 모듈 추가", "Expo 앱 화면 구현", "QA 돌려줘", "Critical 이슈 수정", "스키마 업데이트", "screens.md 갱신", "ticket done 처리" 등 home-coffing의 ticket developing/reviewing 단계 작업이 언급되면 반드시 이 스킬을 사용. 사용자 컨펌 후 자동 실행 모델 — dev-plan만 사람이 검토, 이후 코드 작성과 QA는 팀이 자동. 다른 프로젝트의 일반 개발 작업에는 트리거하지 말 것 — home-coffing 도메인 전용. 분석/디자인 단계는 brain 레포에서 진행하므로 이 스킬에서는 다루지 않음.
+description: home-coffing 코드 레포(apps/api, apps/app) ticket 기반 개발 사이클 오케스트레이터. "ticket 002 개발 시작", "T003 dev plan 작성", "API bean 모듈 추가", "Expo 앱 화면 구현", "QA 돌려줘", "Critical 이슈 수정", "스키마 업데이트", "screens.md 갱신", "ticket done 처리" 등 home-coffing의 ticket developing/reviewing 단계 작업이 언급되면 반드시 이 스킬을 사용. 사용자 컨펌 후 자동 실행 모델 — dev-plan만 사람이 검토, 이후 코드 작성과 QA는 팀이 자동. 다른 프로젝트의 일반 개발 작업에는 트리거하지 말 것 — home-coffing 도메인 전용. 분석/디자인 단계는 brain 레포에서 진행하므로 이 스킬에서는 다루지 않음.
 ---
 
 # home-coffing-dev
 
-home-coffing 코드 레포의 **ticket 기반 dev 사이클**을 오케스트레이션한다. brain 레포의 ticket 폴더(`tickets/NNN/`)를 입력으로, 실제 코드(`apps/api`, `apps/app`, `apps/web`) 변경과 QA, ticket done 마무리(spec 갱신)까지 수행한다.
+home-coffing 코드 레포의 **ticket 기반 dev 사이클**을 오케스트레이션한다. brain 레포의 ticket 폴더(`tickets/NNN/`)를 입력으로, 실제 코드(`apps/api`, `apps/app`) 변경과 QA, ticket done 마무리(spec 갱신)까지 수행한다.
 
 **핵심 모델:** dev-plan만 사용자 컨펌 후 자동 실행. 매 커밋 단위로 멈추지 않는다. 분석·디자인 단계는 brain 레포에서 종료된 상태로 진입한다고 가정한다.
 
@@ -192,7 +192,7 @@ Task D: QA 모듈 X+Y (qa-engineer, blockedBy: C)
 
 ### 3-3. 사용자 보고
 
-- 변경 파일 목록 (apps/api, apps/app, apps/web 별)
+- 변경 파일 목록 (apps/api, apps/app 별)
 - 신규 엔드포인트·화면·이벤트 요약
 - spec 갱신 요약 (어느 라인이 추가/변경)
 - 미해결 QA 이슈 (있으면, 라벨별)
@@ -239,7 +239,6 @@ Task D: QA 모듈 X+Y (qa-engineer, blockedBy: C)
 - "T### 개발", "T### QA"
 - "API {모듈} 추가 / 수정"
 - "Expo 앱 {화면} 구현"
-- "Next.js 웹 {페이지}"
 - "스키마 업데이트", "schema:update"
 - "QA 돌려줘", "qa 보강"
 - "Critical 이슈 수정", "qa.md 후속"

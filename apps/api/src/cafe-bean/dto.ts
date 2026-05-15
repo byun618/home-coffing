@@ -6,28 +6,15 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
-  IsString,
   Max,
-  MaxLength,
   Min,
-  MinLength,
 } from 'class-validator';
-import { BeanFinishedReason } from '../common/entities';
+import { BeanFinishedReason, BeanProcess, BeanType } from '../common/entities';
 
-export class CreateBeanDto {
-  @IsString()
-  @MinLength(1)
-  @MaxLength(120)
-  name!: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(120)
-  origin?: string;
-
-  @IsOptional()
+export class CreateCafeBeanDto {
   @IsInt()
-  roasterId?: number;
+  @Min(1)
+  beanId!: number;
 
   @IsNumber()
   @Min(0.1)
@@ -68,21 +55,11 @@ export class CreateBeanDto {
   autoRopEnabled?: boolean;
 }
 
-export class UpdateBeanDto {
-  @IsOptional()
-  @IsString()
-  @MinLength(1)
-  @MaxLength(120)
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(120)
-  origin?: string;
-
+export class UpdateCafeBeanDto {
   @IsOptional()
   @IsInt()
-  roasterId?: number;
+  @Min(1)
+  beanId?: number;
 
   @IsOptional()
   @IsNumber()
@@ -148,12 +125,18 @@ export interface RopInfo {
   source: 'measured' | 'fallback';
 }
 
-export interface BeanResponse {
+export interface CafeBeanCatalogInfo {
+  id: number;
+  name: string;
+  type: BeanType;
+  process: BeanProcess | null;
+  tastingNote: string[] | null;
+}
+
+export interface CafeBeanResponse {
   id: number;
   cafeId: number;
-  name: string;
-  origin: string | null;
-  roaster: { id: number; name: string } | null;
+  bean: CafeBeanCatalogInfo;
   totalGrams: number;
   remainGrams: number;
   orderedAt: Date;

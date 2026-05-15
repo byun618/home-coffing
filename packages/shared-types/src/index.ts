@@ -1,72 +1,3 @@
-// === Bean ===
-
-export interface BeanCreateRequest {
-  name: string;
-  totalAmount: number;
-  orderedAt: string;
-  roastDate: string;
-  arrivedAt?: string;
-  degassingDays: number;
-  cupsPerDay: number;
-  gramsPerCup: number;
-}
-
-export interface BeanUpdateRequest {
-  name?: string;
-  totalAmount?: number;
-  orderedAt?: string;
-  roastDate?: string;
-  arrivedAt?: string | null;
-  degassingDays?: number;
-  cupsPerDay?: number;
-  gramsPerCup?: number;
-}
-
-export type BeanStatus = 'degassing' | 'safe' | 'soon' | 'order' | 'empty';
-
-export interface BeanWithStats {
-  id: number;
-  cafeId: number;
-  name: string;
-  totalAmount: number;
-  remainAmount: number;
-  orderedAt: string;
-  roastDate: string;
-  arrivedAt: string | null;
-  degassingDays: number;
-  cupsPerDay: number;
-  gramsPerCup: number;
-  createdAt: string;
-  progress: number;
-  rop: number;
-  status: BeanStatus;
-  dailyConsumption: number;
-  degassingEndDate: string | null;
-}
-
-// === Consumption ===
-
-export interface ConsumptionCreateRequest {
-  items: { beanId: number; amount: number }[];
-}
-
-export interface ConsumptionResult {
-  results: { beanId: number; remainAmount: number }[];
-}
-
-export interface ConsumptionItem {
-  id: number;
-  beanId: number;
-  beanName: string;
-  amount: number;
-  createdAt: string;
-}
-
-export interface ConsumptionListResponse {
-  items: ConsumptionItem[];
-  total: number;
-}
-
 // === Record ===
 
 export interface RecordResponse {
@@ -265,4 +196,78 @@ export interface PushSubscribeRequest {
     p256dh: string;
     auth: string;
   };
+}
+
+// === Bean Catalog (T005) ===
+
+export type BeanType = 'single' | 'blend' | 'decaf';
+export type BeanProcess = 'washed' | 'natural' | 'honey' | 'anaerobic';
+
+export interface BeanCatalogItem {
+  id: number;
+  name: string;
+  type: BeanType;
+  process: BeanProcess | null;
+  tastingNote: string[] | null;
+}
+
+// === CafeBean (T005) ===
+
+export type BeanFinishedReason = 'consumed' | 'discarded';
+
+export type RopStatus = 'fresh' | 'soon' | 'urgent' | 'paused';
+
+export interface RopInfo {
+  status: RopStatus;
+  cupsRemaining: number;
+  daysRemaining: number | null;
+  dailyGrams: number;
+  source: 'measured' | 'fallback';
+}
+
+export interface CafeBeanCreateRequest {
+  beanId: number;
+  totalGrams: number;
+  orderedAt: string;
+  roastedOn: string;
+  arrivedAt?: string;
+  degassingDays?: number;
+  cupsPerDay?: number;
+  gramsPerCup?: number;
+  autoRopEnabled?: boolean;
+}
+
+export interface CafeBeanUpdateRequest {
+  beanId?: number;
+  totalGrams?: number;
+  orderedAt?: string;
+  roastedOn?: string;
+  arrivedAt?: string | null;
+  degassingDays?: number;
+  cupsPerDay?: number;
+  gramsPerCup?: number;
+  autoRopEnabled?: boolean;
+  finishedAt?: string | null;
+  finishedReason?: BeanFinishedReason | null;
+  archivedAt?: string | null;
+}
+
+export interface CafeBeanResponse {
+  id: number;
+  cafeId: number;
+  bean: BeanCatalogItem;
+  totalGrams: number;
+  remainGrams: number;
+  orderedAt: string;
+  roastedOn: string;
+  arrivedAt: string | null;
+  degassingDays: number;
+  cupsPerDay: number;
+  gramsPerCup: number;
+  autoRopEnabled: boolean;
+  finishedAt: string | null;
+  finishedReason: BeanFinishedReason | null;
+  archivedAt: string | null;
+  createdAt: string;
+  rop: RopInfo;
 }

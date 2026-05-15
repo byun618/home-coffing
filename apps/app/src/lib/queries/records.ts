@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "../api";
 import type { Record } from "../types";
-import { beanKeys } from "./beans";
+import { beanKeys } from "./cafe-beans";
 
 export const recordKeys = {
   all: ["records"] as const,

@@ -8,18 +8,15 @@ import {
   PrimaryKey,
   Property,
 } from '@mikro-orm/core';
-import { Roaster } from './roaster.entity';
 import { User } from './user.entity';
 import { CafeBean } from './cafe-bean.entity';
-import { EntitySource } from './enums';
+import { BeanProcess, BeanType, EntitySource } from './enums';
 
 @Entity()
 export class Bean {
   [OptionalProps]?:
-    | 'roaster'
-    | 'origin'
     | 'process'
-    | 'roastLevel'
+    | 'tastingNote'
     | 'createdBy'
     | 'createdAt'
     | 'cafeBeans';
@@ -27,20 +24,17 @@ export class Bean {
   @PrimaryKey({ autoincrement: true })
   id!: number;
 
-  @Property({ length: 120 })
+  @Property({ length: 120, unique: true })
   name!: string;
 
-  @ManyToOne(() => Roaster, { nullable: true })
-  roaster: Roaster | null = null;
+  @Enum(() => BeanType)
+  type!: BeanType;
 
-  @Property({ length: 120, nullable: true })
-  origin: string | null = null;
+  @Enum({ items: () => BeanProcess, nullable: true })
+  process: BeanProcess | null = null;
 
-  @Property({ length: 60, nullable: true })
-  process: string | null = null;
-
-  @Property({ length: 30, nullable: true })
-  roastLevel: string | null = null;
+  @Property({ type: 'json', nullable: true })
+  tastingNote: string[] | null = null;
 
   @Enum(() => EntitySource)
   source!: EntitySource;

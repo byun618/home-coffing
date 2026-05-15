@@ -5,11 +5,10 @@ import {
   CafeBean,
   CafeUser,
   RecordBean,
-  Roaster,
   User,
 } from '../common/entities';
-import { BeanController } from './bean.controller';
-import { BeanService } from './bean.service';
+import { CafeBeanController } from './cafe-bean.controller';
+import { CafeBeanService } from './cafe-bean.service';
 
 @Module({
   imports: [
@@ -17,13 +16,12 @@ import { BeanService } from './bean.service';
       Bean,
       CafeBean,
       CafeUser,
-      Roaster,
       RecordBean,
       User,
     ]),
   ],
-  controllers: [BeanController],
-  providers: [BeanService],
-  exports: [BeanService],
+  controllers: [CafeBeanController],
+  providers: [CafeBeanService],
+  exports: [CafeBeanService],
 })
-export class BeanModule {}
+export class CafeBeanModule {}

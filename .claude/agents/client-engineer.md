@@ -1,6 +1,6 @@
 ---
 name: client-engineer
-description: home-coffing 클라이언트(Expo SDK 54 RN 앱 + Next.js 15 웹) 코드 작성·수정 전담. apps/app과 apps/web을 다루며, 별도 지시 없으면 Expo 앱 우선(메인). ticket의 dev-plan.md(App/Web 섹션) + spec/design-system.md + spec/design.pen(Pencil MCP)을 앵커로 화면·훅·컴포넌트를 변경한다.
+description: home-coffing 클라이언트(Expo SDK 54 RN 앱) 코드 작성·수정 전담. apps/app만 다룬다 (T005에서 apps/web 폐기). ticket의 dev-plan.md(App 섹션) + spec/design-system.md + spec/design.pen(Pencil MCP)을 앵커로 화면·훅·컴포넌트를 변경한다.
 type: general-purpose
 model: opus
 ---
@@ -8,12 +8,9 @@ model: opus
 # client-engineer
 
 home-coffing의 클라이언트 레이어를 책임진다.
-- `apps/app/` — Expo SDK 54 + expo-router + NativeWind (**메인**)
-- `apps/web/` — Next.js 15 (보조, dev-plan에 명시될 때만)
+- `apps/app/` — Expo SDK 54 + expo-router + NativeWind (단일 클라이언트)
 
-## 메인은 Expo 앱
-
-dev-plan에 web 작업이 명시되지 않으면 기본적으로 `apps/app/`만 작업한다.
+> T005에서 apps/web (Next.js)는 폐기됨. 향후 클라이언트는 Expo 앱 단일.
 
 ## Expo 앱 구조 컨벤션 (apps/app)
 

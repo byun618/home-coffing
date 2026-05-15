@@ -25,7 +25,7 @@ import {
   formatGrams,
   ropLabel,
 } from "../../src/lib/format";
-import { useBeanDetail, useUpdateBean } from "../../src/lib/queries/beans";
+import { useBeanDetail, useUpdateBean } from "../../src/lib/queries/cafe-beans";
 import { useRecordsList } from "../../src/lib/queries/records";
 import { useAuthStore } from "../../src/lib/stores/auth-store";
 import { showToast } from "../../src/lib/stores/toast-store";
@@ -132,7 +132,7 @@ export default function BeanDetailScreen() {
   function onPressOrder() {
     Linking.openURL(
       `mailto:?subject=${encodeURIComponent("다음 원두 주문")}&body=${encodeURIComponent(
-        `다음 원두 주문 메모\n\n현재 원두: ${bean.name}\n잔량: ${bean.remainGrams}g`,
+        `다음 원두 주문 메모\n\n현재 원두: ${bean.bean.name}\n잔량: ${bean.remainGrams}g`,
       )}`,
     );
   }
@@ -208,13 +208,8 @@ export default function BeanDetailScreen() {
             className="text-[24px] font-pretendard-bold text-text-primary"
             numberOfLines={2}
           >
-            {bean.name}
+            {bean.bean.name}
           </Text>
-          {bean.origin ? (
-            <Text className="text-[13px] font-pretendard text-text-secondary mt-1">
-              {bean.origin}
-            </Text>
-          ) : null}
         </View>
 
         {/* amount card */}
