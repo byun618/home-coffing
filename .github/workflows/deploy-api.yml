@@ -14,7 +14,7 @@ permissions:
 jobs:
   parsing:
     name: 1. 파싱
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       sha: ${{ steps.set.outputs.sha }}
       tag: ${{ steps.set.outputs.tag }}
@@ -100,7 +100,7 @@ jobs:
     name: 4. 요약
     needs: [parsing, build, deploy]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - run: |
           STATUS="${{ needs.deploy.result }}"
