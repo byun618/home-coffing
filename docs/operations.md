@@ -74,21 +74,25 @@
 ### 구성
 
 ```
-[Cloudflare Tunnel] → :3010 (Next.js web) → /api/[...] proxy → :3011 (NestJS api) → MySQL :3306
+[Cloudflare Tunnel] → :3011 (NestJS api) → MySQL :3306
 ```
 
-- 맥미니에서 docker-compose로 `home-coffing-api`(:3011→3001), `home-coffing-web`(:3010→3000) 2개 컨테이너 운영.
+- 맥미니에서 docker-compose로 `home-coffing-api`(:3011→3001) 1개 컨테이너 운영. (T005에서 apps/web 폐기, T008에서 cloudflared 라우팅 :3011 직결로 정리)
 - MySQL은 컨테이너가 아니라 **homelab-infra의 맥미니 호스트 MySQL**(`~/repos/byun618/homelab-infra/docker/compose.yaml`)을 공유. 그래서 api 컨테이너는 `extra_hosts`로 `host.docker.internal:host-gateway`를 받고, `DB_HOST=host.docker.internal`로 접근한다.
 - 스키마 이름은 `home_coffing` (단수). homelab MySQL에서 수동 생성 필요.
 - 출처: `docker-compose.yml`, 메모리 `user_dev_environment.md`, brain plan
 
-### 배포 명령
-- `pnpm docker:deploy` = `git pull && docker-compose up -d --build`. 맥미니에서 이 한 줄로 배포.
-- 컨테이너 진입 시 `apps/api`는 시작 전에 **`pnpm schema:update`를 자동 실행** (Dockerfile `CMD`). 엔티티 구조가 바뀌면 배포만 해도 스키마가 따라온다. 반대로 파괴적 변경(컬럼 drop 등)은 데이터 손실 가능하니 주의.
-- 출처: `Dockerfile`, `package.json`
+### 배포 (T008부터)
+- 메인 흐름: GitHub Actions `🚀 Deploy API` 워크플로 (`workflow_dispatch` 수동 트리거). self-hosted runner(맥미니)에서 docker build → GHCR push → docker-compose pull/up. 절차 전체는 `docs/deploy-runbook.md` 참고.
+- 이미지: `ghcr.io/byun618/home-coffing-api:<branch>-<sha7>` 및 `:latest` (public)
+- `pnpm docker:deploy` = `git pull && docker-compose pull && docker-compose up -d`. GHCR에 이미지가 이미 있을 때 수동 재기동용.
+- `pnpm docker:deploy:local` = `git pull && docker-compose build && docker-compose up -d`. GHA 다운 시 fallback (push 안 함).
+- ⚠ **schema:update는 컨테이너 부팅에서 분리됨** (T008). 스키마 변경 ticket은 배포 후 수동: `docker exec -it home-coffing-api pnpm schema:update`
+- 출처: `Dockerfile`, `package.json`, `.github/workflows/deploy-api.yml`, `docs/deploy-runbook.md`
 
 ### Turbo prune 기반 multi-stage Dockerfile
-- `Dockerfile`의 `ARG APP`으로 api/web 둘 다 한 파일로 빌드. `turbo prune @home-coffing/${APP} --docker`로 대상 앱 의존성만 뽑아내서 설치 레이어 캐시 극대화. 수정 시 prune 단계가 깨지지 않도록 주의.
+- `Dockerfile`의 `ARG APP`으로 빌드. `turbo prune @home-coffing/${APP} --docker`로 대상 앱 의존성만 뽑아내서 설치 레이어 캐시 극대화. 수정 시 prune 단계가 깨지지 않도록 주의.
+- 현재 활용: `APP=api`만. (T005에서 apps/web 폐기로 web 빌드는 없음)
 - 출처: `Dockerfile`
 
 ---
@@ -140,7 +144,7 @@
 
 ```
 pnpm schema:create   # 전체 생성
-pnpm schema:update   # 엔티티 diff 적용 (Dockerfile runner가 자동 실행하는 것과 동일)
+pnpm schema:update   # 엔티티 diff 적용. T008부터 자동 실행 안 됨 — 스키마 변경 ticket에서 수동 실행 (`docker exec -it home-coffing-api pnpm schema:update`)
 pnpm schema:drop     # 전체 drop
 pnpm db:reset        # drop + create (로컬 리셋용)
 ```

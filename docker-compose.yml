@@ -1,9 +1,6 @@
 services:
   api:
-    build:
-      context: .
-      args:
-        APP: api
+    image: ghcr.io/byun618/home-coffing-api:${API_IMAGE_TAG:-latest}
     container_name: home-coffing-api
     restart: unless-stopped
     ports:

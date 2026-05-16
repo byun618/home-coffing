@@ -1,0 +1,129 @@
+name: 🚀 Deploy API
+
+on:
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ghcr.io/byun618/home-coffing-api
+  TZ: Asia/Seoul
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  parsing:
+    name: 1. 파싱
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.set.outputs.sha }}
+      tag: ${{ steps.set.outputs.tag }}
+      branch: ${{ steps.set.outputs.branch }}
+    steps:
+      - id: set
+        run: |
+          sha="${GITHUB_SHA::7}"
+          branch="${{ github.ref_name }}"
+          tag="${branch}-${sha}"
+          {
+            echo "sha=${sha}"
+            echo "branch=${branch}"
+            echo "tag=${tag}"
+          } >> $GITHUB_OUTPUT
+
+  build:
+    name: 2. 빌드 & GHCR 푸시
+    needs: parsing
+    runs-on: self-hosted
+    steps:
+      - name: 2-1. 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 2-2. Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: 2-3. GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 2-4. 빌드 & 푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/arm64
+          build-args: |
+            APP=api
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ needs.parsing.outputs.tag }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+  deploy:
+    name: 3. 맥미니 배포
+    needs: [parsing, build]
+    runs-on: self-hosted
+    env:
+      DEPLOY_PATH: /Users/homelab/repos/byun618/home-coffing
+    steps:
+      - name: 3-1. 코드 동기화
+        run: |
+          cd "$DEPLOY_PATH"
+          git fetch origin
+          git checkout ${{ needs.parsing.outputs.branch }}
+          git pull --ff-only origin ${{ needs.parsing.outputs.branch }}
+
+      - name: 3-2. GHCR 로그인 (host docker daemon)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 3-3. 이미지 pull & 재기동
+        env:
+          API_IMAGE_TAG: ${{ needs.parsing.outputs.tag }}
+        run: |
+          cd "$DEPLOY_PATH"
+          docker compose pull api
+          docker compose up -d api
+          sleep 5
+          docker compose logs api --tail 50
+
+  summary:
+    name: 4. 요약
+    needs: [parsing, build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          STATUS="${{ needs.deploy.result }}"
+          ICON=$([[ "$STATUS" == "success" ]] && echo "✅" || echo "❌")
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## ${ICON} Deploy API Summary
+
+          | 항목 | 값 |
+          |---|---|
+          | Branch | \`${{ needs.parsing.outputs.branch }}\` |
+          | Commit | \`${{ needs.parsing.outputs.sha }}\` |
+          | Image Tag | \`${{ needs.parsing.outputs.tag }}\` |
+          | Build | ${{ needs.build.result }} |
+          | Deploy | ${{ needs.deploy.result }} |
+
+          ### 🐳 이미지
+          - \`${{ env.IMAGE_NAME }}:${{ needs.parsing.outputs.tag }}\`
+          - \`${{ env.IMAGE_NAME }}:latest\`
+
+          ### 🔄 롤백 방법
+          맥미니에서:
+          \`\`\`bash
+          cd /Users/homelab/repos/byun618/home-coffing
+          API_IMAGE_TAG=<원하는-태그> docker-compose up -d api
+          \`\`\`
+          EOF

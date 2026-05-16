@@ -32,4 +32,4 @@ ARG APP
 ENV APP=${APP}
 WORKDIR /app/apps/${APP}
 
-CMD ["sh", "-c", "if [ \"$APP\" = \"api\" ]; then pnpm schema:update && node dist/main; else pnpm start; fi"]
+CMD ["sh", "-c", "if [ \"$APP\" = \"api\" ]; then node dist/main; else pnpm start; fi"]
