@@ -27,21 +27,23 @@
 ## 배포 / 외부 명령 (사용자 권한 요청 후 실행)
 
 - `pnpm install` (lockfile 갱신)
-- `pnpm schema:update` (DB 스키마 변경 — 데이터 손실 가능)
+- `pnpm schema:update` (DB 스키마 변경 — 데이터 손실 가능. T008부터 컨테이너 부팅 시 자동 실행 안 됨, 필요 시 수동: `docker exec -it home-coffing-api pnpm schema:update`)
 - `pnpm db:reset`
 - `npx expo install`
-- `pnpm docker:deploy` (배포)
+- **GitHub Actions "🚀 Deploy API" workflow_dispatch** (T008부터, 메인 배포 흐름)
 - `eas build`
 
 ## 인프라 토폴로지
 
 ```
-[Cloudflare Tunnel] → :3011 (NestJS api) → MySQL :3306
+[Cloudflare Tunnel] → :3011 (home-coffing-api) → MySQL :3306
 ```
 
-- 맥미니 docker-compose 운영
-- MySQL은 컨테이너가 아니라 homelab-infra 호스트 MySQL 공유
-- `DB_HOST=host.docker.internal` (compose에서 덮어씀)
+- 운영 compose owner: `homelab-infra/services/home-coffing/docker-compose.yml` (T008부터)
+- 시크릿 owner: mac mini의 `homelab-infra/services/home-coffing/.env` (gitignored)
+- 이미지: mac mini local-only (`home-coffing-api:<branch>-<sha7>`, 외부 레지스트리 X)
+- GHA self-hosted runner: `homelab-infra/services/_runner/` (Docker 컨테이너)
+- MySQL은 homelab-infra 호스트 MySQL 공유 (`DB_HOST=host.docker.internal`)
 - 스키마: `home_coffing` (단수)
 
 ## VAPID 키
@@ -52,7 +54,7 @@
 ## EAS Build 체크리스트
 
 1. `eas login` / `eas init`
-2. 맥미니 docker-compose 살아있는지, Cloudflare Tunnel 연결 확인 (`curl https://coffee-api.chaco.cloud/api/beans`)
+2. API 살아있는지 확인 (`curl https://coffee-api.chaco.cloud/api/...` 200/400 응답)
 3. `cd apps/app && eas build --profile preview --platform android`
 4. APK URL을 폰 브라우저에서 다운로드
 

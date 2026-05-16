@@ -51,15 +51,21 @@
 
 ## 환경 변수
 
-### 루트 `.env` — API + docker-compose 공용
+### 런타임 환경변수 (T008부터)
+운영 시크릿 owner는 **mac mini의 `homelab-infra/services/home-coffing/.env`** (gitignored). home-coffing repo 루트의 `.env`는 로컬 dev 전용.
+
 | 키 | 의미 |
 |---|---|
-| `DB_HOST` | API 컨테이너 내부에선 `host.docker.internal`로 덮어씀 (docker-compose.yml) |
-| `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` | homelab-infra MySQL 접속 정보. 기본 스키마 `home_coffing` |
-| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | Web Push. `web-push generate-vapid-keys`로 생성해서 **맥미니 배포 환경에 투입** (재발급 시 구독자 전원 재구독 필요) |
+| `DB_HOST` | API 컨테이너 내부에선 `host.docker.internal`로 자동 셋팅 (compose `environment:` 블록) |
+| `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` | homelab MySQL 접속 정보. 기본 스키마 `home_coffing` |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | JWT 서명용 |
+| `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | 토큰 수명 (기본 15m / 30d) |
+| `AMPLITUDE_API_KEY` | Analytics (T006 활용 예정) |
+| `FCM_SERVICE_ACCOUNT_JSON` | Firebase Cloud Messaging |
 
-- MikroORM config(`apps/api/src/mikro-orm.config.ts`)는 `../../../.env`(레포 루트) 한 파일을 본다. `apps/api/.env`를 따로 두면 로드되지 않음.
-- 출처: `.env.example`, `docker-compose.yml`, `apps/api/src/mikro-orm.config.ts`
+- MikroORM config(`apps/api/src/mikro-orm.config.ts`)는 컨테이너 내부에선 `process.env`를 직접 읽음 (compose의 env_file·environment 블록이 inject). 로컬 dev에선 루트 `.env`.
+- 시크릿 회전: mac mini의 `~/repos/byun618/homelab-infra/services/home-coffing/.env` 수정 → `docker compose up -d api`로 재기동.
+- 출처: `homelab-infra/services/home-coffing/.env.example`, `apps/api/src/mikro-orm.config.ts`
 
 ### `apps/app/.env` — Expo 앱
 - `EXPO_PUBLIC_API_URL` — Cloudflare Tunnel로 노출된 API 엔드포인트. `EXPO_PUBLIC_` 접두어가 있어야 런타임 번들에 주입됨.
@@ -77,18 +83,20 @@
 [Cloudflare Tunnel] → :3011 (NestJS api) → MySQL :3306
 ```
 
-- 맥미니에서 docker-compose로 `home-coffing-api`(:3011→3001) 1개 컨테이너 운영. (T005에서 apps/web 폐기, T008에서 cloudflared 라우팅 :3011 직결로 정리)
-- MySQL은 컨테이너가 아니라 **homelab-infra의 맥미니 호스트 MySQL**(`~/repos/byun618/homelab-infra/docker/compose.yaml`)을 공유. 그래서 api 컨테이너는 `extra_hosts`로 `host.docker.internal:host-gateway`를 받고, `DB_HOST=host.docker.internal`로 접근한다.
-- 스키마 이름은 `home_coffing` (단수). homelab MySQL에서 수동 생성 필요.
-- 출처: `docker-compose.yml`, 메모리 `user_dev_environment.md`, brain plan
+- 맥미니에서 `home-coffing-api`(:3011→3001) 컨테이너 1개 운영. (T005 apps/web 폐기, T008 cloudflared 라우팅 :3011 직결 정리)
+- 운영 compose는 **`homelab-infra/services/home-coffing/docker-compose.yml`** 가 owner (T008부터). home-coffing repo는 빌드용 (Dockerfile + 코드).
+- 시크릿(`.env`)은 `homelab-infra/services/home-coffing/.env` (gitignored, mac mini에만 존재).
+- MySQL은 컨테이너가 아니라 **homelab-infra의 맥미니 호스트 MySQL**(`~/repos/byun618/homelab-infra/docker/compose.yaml`)을 공유. api 컨테이너는 `extra_hosts`로 `host.docker.internal:host-gateway`를 받고 `DB_HOST=host.docker.internal`로 접근.
+- 스키마 이름은 `home_coffing` (단수).
+- 출처: `homelab-infra/services/home-coffing/`, 메모리 `user_dev_environment.md`
 
 ### 배포 (T008부터)
-- 메인 흐름: GitHub Actions `🚀 Deploy API` 워크플로 (`workflow_dispatch` 수동 트리거). self-hosted runner(맥미니)에서 docker build → GHCR push → docker-compose pull/up. 절차 전체는 `docs/deploy-runbook.md` 참고.
-- 이미지: `ghcr.io/byun618/home-coffing-api:<branch>-<sha7>` 및 `:latest` (public)
-- `pnpm docker:deploy` = `git pull && docker-compose pull && docker-compose up -d`. GHCR에 이미지가 이미 있을 때 수동 재기동용.
-- `pnpm docker:deploy:local` = `git pull && docker-compose build && docker-compose up -d`. GHA 다운 시 fallback (push 안 함).
+- 메인 흐름: GitHub Actions `🚀 Deploy API` 워크플로 (`workflow_dispatch` 수동 트리거). self-hosted runner(맥미니, Docker로 띄움 — `homelab-infra/services/_runner/`)에서 docker build → mac mini local daemon에 적재 → `homelab-infra/services/home-coffing/`에서 `API_IMAGE_TAG=<sha> docker compose up -d`.
+- 이미지: **mac mini local-only** (`home-coffing-api:<branch>-<sha7>` 및 `:latest`). 외부 레지스트리(GHCR 등) 안 씀.
 - ⚠ **schema:update는 컨테이너 부팅에서 분리됨** (T008). 스키마 변경 ticket은 배포 후 수동: `docker exec -it home-coffing-api pnpm schema:update`
-- 출처: `Dockerfile`, `package.json`, `.github/workflows/deploy-api.yml`, `docs/deploy-runbook.md`
+- 디스크 정리: 워크플로 마지막에 `docker image prune -af --filter "until=720h"`로 30일 경과 untagged만 자동 정리. 태그된 이미지는 수동 정리.
+- 절차 전체는 `docs/deploy-runbook.md` 참고.
+- 출처: `Dockerfile`, `.github/workflows/deploy-api.yml`, `homelab-infra/services/home-coffing/`, `homelab-infra/services/_runner/`, `docs/deploy-runbook.md`
 
 ### Turbo prune 기반 multi-stage Dockerfile
 - `Dockerfile`의 `ARG APP`으로 빌드. `turbo prune @home-coffing/${APP} --docker`로 대상 앱 의존성만 뽑아내서 설치 레이어 캐시 극대화. 수정 시 prune 단계가 깨지지 않도록 주의.

@@ -225,7 +225,7 @@ Task D: QA 모듈 X+Y (qa-engineer, blockedBy: C)
 - **api ↔ client shape 불일치 (Critical)**: qa-engineer 즉시 보고 → 리더가 해당 엔지니어 재호출. 1회 재시도 후 재실패면 사용자에게 의사결정 요청.
 - **운영 가드레일 위반 시도**: 즉시 차단. `docs/operations.md`(요약: `references/operations-summary.md`) 절대 금지 항목은 어떤 dev-plan이든 우회 금지. 위반 발견 시 dev-plan 자체를 사용자에게 다시 보내 수정 요청.
 - **MikroORM schema:update 실패**: 즉시 중단. 데이터 손실 우려가 있으면 사용자 컨펌 없이 계속 진행 금지.
-- **외부 의존(`pnpm install`, `npx expo install`, `pnpm schema:update`, `pnpm docker:deploy`, `eas build`)**: 사용자 권한 요청 — 자동 실행 X.
+- **외부 의존(`pnpm install`, `npx expo install`, `pnpm schema:update`, GitHub Actions 배포 워크플로 트리거, `eas build`)**: 사용자 권한 요청 — 자동 실행 X.
 - **spec/data-model.md 또는 spec/component-library.md 참조 시도**: 이 파일은 더 이상 존재하지 않는다. 데이터 스키마 SoT는 코드 ORM, 컴포넌트 카탈로그는 `spec/design-system.md`. 잘못된 참조 발견 시 즉시 정정.
 
 ## 팀 크기 가이드
