@@ -6,3 +6,6 @@ dist
 .env.local
 *.tsbuildinfo
 backups/
+
+# ticket worktrees (ticket-think skill convention)
+.claude/worktrees/
