@@ -1,9 +1,11 @@
 ---
 name: issue-bootstrap
-description: "home-coffing 일감(LIFE-N) 작업 시작 시 코드 워크트리·브랜치 생성 + analysis 로딩. 트리거: 'LIFE-15 시작', 'LIFE-N 작업', '워크트리 만들어줘', 'home-coffing {번호} 작업 환경 준비', 'issue-bootstrap'. 일감 ID는 LIFE-N (life-assistant 앱 DB의 sequentialId). issue-design/feature-delivery 진입 전 1회 실행."
+description: "[대체됨 2026-10-30 — paddock task-start 를 쓴다. 사용자가 이 스킬 이름을 직접 부를 때만 사용] home-coffing 일감(LIFE-N) 작업 시작 시 코드 워크트리·브랜치 생성 + analysis 로딩. 트리거: 'LIFE-15 시작', 'LIFE-N 작업', '워크트리 만들어줘', 'home-coffing {번호} 작업 환경 준비', 'issue-bootstrap'. 일감 ID는 LIFE-N (life-assistant 앱 DB의 sequentialId). issue-design/feature-delivery 진입 전 1회 실행."
 ---
 
 # issue-bootstrap
+
+> **대체됨 (2026-10-30)**: paddock 적용으로 이 스킬의 역할은 `.agents/skills/task-start` 가 맡는다. 삭제 여부는 사용자 확인 대기.
 
 home-coffing 일감(LIFE-N) 작업의 진입 의식. 코드 워크트리·브랜치 + analysis 로딩까지 1회 처리. 산출물 폴더(`issues/LIFE-N/`)는 만들지 *않고*, 디자인·dev skill이 lazy 생성.
 

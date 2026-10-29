@@ -1,0 +1,6 @@
+#!/bin/sh
+# paddock:fixed
+# 스테이징된 변경에 시크릿 모양 값이 있으면 커밋을 막는다. 클론마다 한 번: git config core.hooksPath .githooks
+# 가짜 값(테스트 토큰 등)으로 막히면 그 줄에 `gitleaks:allow` 주석을 달거나 .gitleaksignore 에 지문을 적는다
+command -v gitleaks >/dev/null 2>&1 || { echo "pre-commit: gitleaks 없음 — brew install gitleaks" >&2; exit 1; }
+exec gitleaks git --pre-commit --staged --redact --no-banner --log-level warn

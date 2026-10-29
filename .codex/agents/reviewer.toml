@@ -1,0 +1,7 @@
+# paddock:fixed — 역할마다 하나씩 찍어 .codex/agents/reviewer.toml 로 둔다
+name = "reviewer"
+description = "구현 코드 독립 검토"
+
+developer_instructions = """
+.agents/agents/reviewer.md 를 먼저 읽고 그 지침을 그대로 따른다.
+"""

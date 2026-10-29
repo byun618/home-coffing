@@ -1,9 +1,11 @@
 ---
 name: feature-delivery
-description: "home-coffing 풀스택 dev 오케스트레이터. 일감(LIFE-N) 워크트리 안에서 API(NestJS)·App(Expo)·shared-types를 동시에 변경하는 dev → qa 작업에 사용. 트리거: 'LIFE-15 dev', 'feature-delivery 시작', '구현 가자', '이 일감 다시 작업', '재실행', 'API만 다시', '경계면 검증 다시', '이전 plan 보완'. 디자인 산출물(spec/screens.md)이 있으면 읽고 없으면 master만 참고. 단순 단일 파일 수정·typo·리네임은 트리거 X. 워크트리·브랜치 생성은 issue-bootstrap, 디자인은 issue-design."
+description: "[대체됨 2026-10-30 — paddock task-start → task-coordinate 를 쓴다. 사용자가 이 스킬 이름을 직접 부를 때만 사용] home-coffing 풀스택 dev 오케스트레이터. 일감(LIFE-N) 워크트리 안에서 API(NestJS)·App(Expo)·shared-types를 동시에 변경하는 dev → qa 작업에 사용. 트리거: 'LIFE-15 dev', 'feature-delivery 시작', '구현 가자', '이 일감 다시 작업', '재실행', 'API만 다시', '경계면 검증 다시', '이전 plan 보완'. 디자인 산출물(spec/screens.md)이 있으면 읽고 없으면 master만 참고. 단순 단일 파일 수정·typo·리네임은 트리거 X. 워크트리·브랜치 생성은 issue-bootstrap, 디자인은 issue-design."
 ---
 
 # feature-delivery — home-coffing 풀스택 dev 오케스트레이터
+
+> **대체됨 (2026-10-30)**: paddock 적용으로 이 스킬의 역할은 `.agents/skills/task-start` · `task-coordinate` 가 맡는다. 삭제 여부는 사용자 확인 대기.
 
 **실행 모드:** 에이전트 팀 (TeamCreate + SendMessage + TaskCreate)
 **팀 구성:** planner, api-builder, app-builder, types-keeper, qa (5명)

@@ -1,0 +1,15 @@
+PADDOCK_VERSION=0.3.0
+PADDOCK_MODULES="l1 l2 specs-repo"
+PADDOCK_HARNESS=corral
+PADDOCK_SKIP=".claude/agents"
+PROJECT_NAME=home-coffing
+WORKTREE_DIR=.claude/worktrees
+BASE_BRANCH=main
+ISSUE_PREFIX=LIFE
+SPECS_ROOT="<본체>/../home-coffing-specs"
+BUNDLE_PREFIX=feature/
+MAX_FIX_ROUNDS=3
+ROLE=reviewer
+ROLE_DESCRIPTION="구현 코드 독립 검토"
+VARIANT_SUFFIXES="-claude -codex"
+PR_FOOTER=""
