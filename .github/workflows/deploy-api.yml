@@ -1,7 +1,26 @@
 name: 🚀 Deploy API
 
 on:
+  # main 머지 = 운영 배포. API 이미지에 들어가는 경로가 바뀐 push 만 트리거
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared-types/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - '.github/workflows/deploy-api.yml'
+  # 수동 재배포·롤백용
   workflow_dispatch:
+
+# 배포 직렬화 — 실행 중인 런은 취소하지 않고, 대기 중인 런은 최신 하나만 남는다
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
 
 env:
   IMAGE_NAME: home-coffing-api
@@ -31,9 +50,33 @@ jobs:
             echo "tag=${tag}"
           } >> $GITHUB_OUTPUT
 
+  typecheck:
+    name: 1-1. 타입체크 (api)
+    runs-on: self-hosted
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: pnpm 설치 (package.json packageManager 버전)
+        uses: pnpm/action-setup@v4
+
+      - name: Node 설정 (Dockerfile 과 같은 20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 의존성 설치 (api 와 그 의존 패키지만)
+        run: pnpm install --frozen-lockfile --filter @home-coffing/api...
+
+      - name: shared-types 빌드 (api 가 dist 타입을 읽는다)
+        run: pnpm --filter @home-coffing/shared-types build
+
+      - name: apps/api tsc --noEmit
+        run: pnpm --filter @home-coffing/api exec tsc --noEmit
+
   build:
     name: 2. 이미지 빌드 (local)
-    needs: parsing
+    needs: [parsing, typecheck]
     runs-on: self-hosted
     steps:
       - name: 2-1. 코드 체크아웃
@@ -79,7 +122,7 @@ jobs:
 
   summary:
     name: 4. 요약
-    needs: [parsing, build, deploy]
+    needs: [parsing, typecheck, build, deploy]
     if: always()
     runs-on: self-hosted
     steps:
@@ -94,6 +137,7 @@ jobs:
           | Branch | \`${{ needs.parsing.outputs.branch }}\` |
           | Commit | \`${{ needs.parsing.outputs.sha }}\` |
           | Image | \`${{ env.IMAGE_NAME }}:${{ needs.parsing.outputs.tag }}\` |
+          | Typecheck | ${{ needs.typecheck.result }} |
           | Build | ${{ needs.build.result }} |
           | Deploy | ${{ needs.deploy.result }} |
 

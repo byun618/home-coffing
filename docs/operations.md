@@ -91,7 +91,7 @@
 - 출처: `homelab-infra/services/home-coffing/`, 메모리 `user_dev_environment.md`
 
 ### 배포 (T008부터)
-- 메인 흐름: GitHub Actions `🚀 Deploy API` 워크플로 (`workflow_dispatch` 수동 트리거). self-hosted runner(맥미니, Docker로 띄움 — `homelab-infra/services/_runner/`)에서 docker build → mac mini local daemon에 적재 → `homelab-infra/services/home-coffing/`에서 `API_IMAGE_TAG=<sha> docker compose up -d`.
+- 메인 흐름: GitHub Actions `🚀 Deploy API` 워크플로 — **main 머지(API 이미지 경로 변경) 시 자동 실행 = 운영 배포** (LIFE-11). `workflow_dispatch` 는 재배포·롤백용 수동. `typecheck`(shared-types 빌드 → `apps/api` `tsc --noEmit`) 실패 시 build·deploy 안 돎, `concurrency` 로 배포 직렬화. self-hosted runner(맥미니, Docker로 띄움 — `homelab-infra/services/_runner/`)에서 docker build → mac mini local daemon에 적재 → `homelab-infra/services/home-coffing/`에서 `API_IMAGE_TAG=<sha> docker compose up -d`.
 - 이미지: **mac mini local-only** (`home-coffing-api:<branch>-<sha7>` 및 `:latest`). 외부 레지스트리(GHCR 등) 안 씀.
 - ⚠ **schema:update는 컨테이너 부팅에서 분리됨** (T008). 스키마 변경 ticket은 배포 후 수동: `docker exec -it home-coffing-api pnpm schema:update`
 - 디스크 정리: 워크플로 마지막에 `docker image prune -af --filter "until=720h"`로 30일 경과 untagged만 자동 정리. 태그된 이미지는 수동 정리.
