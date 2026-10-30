@@ -11,17 +11,24 @@
 
 ---
 
-## 배포 아키텍처 (T008부터)
+## 배포 아키텍처 (T008부터, LIFE-11 자동 트리거)
 
 ```
-[GitHub Actions workflow_dispatch on home-coffing repo]
-  ├─ build (self-hosted runner, mac mini)
+[GitHub Actions "🚀 Deploy API" — main push(API 경로) 자동 / workflow_dispatch 수동]
+  ├─ typecheck (self-hosted runner, mac mini) — 게이트
+  │  └─ pnpm install --frozen-lockfile → shared-types 빌드 → apps/api tsc --noEmit
+  ├─ build (typecheck 성공 시에만)
   │  └─ docker build → mac mini local docker daemon (외부 registry X)
   └─ deploy (self-hosted runner, mac mini)
      ├─ cd /Users/homelab/repos/byun618/homelab-infra/services/home-coffing
      └─ API_IMAGE_TAG=<sha> docker compose up -d api
 ```
 
+- ⚠ **main 머지 = 곧 운영 배포.** 머지 즉시 배포한다(지연 없음). PR 을 머지하는 것이 배포 승인이다
+- **트리거 경로**: `apps/api/**`·`packages/shared-types/**`·`Dockerfile`·`.dockerignore`·루트 `package.json`·`pnpm-lock.yaml`·`pnpm-workspace.yaml`·`turbo.json`·`.github/workflows/deploy-api.yml`. 그 밖(`apps/app/**`·`docs/**`·`spec/**` 등)만 바뀐 머지는 배포가 돌지 않는다
+- **게이트**: typecheck 가 실패하면 build·deploy 는 돌지 않고 운영은 이전 이미지 그대로다. app 타입체크·lint·테스트는 게이트에 없다
+- **직렬화**: `concurrency: deploy-api` — 실행 중인 배포는 취소하지 않고, 대기 중인 런은 최신 하나만 남는다(중간 대기분은 cancelled 로 보임)
+- PR 시점 CI(`pull_request`)는 없다 — 공개 레포 + docker.sock 을 마운트한 self-hosted 러너라 포크 PR 코드를 러너에 올리지 않는다
 - **이미지는 mac mini local-only** (GHCR 등 외부 레지스트리 안 씀)
 - **운영 compose는 `homelab-infra/services/home-coffing/`** 가 owner. home-coffing repo는 빌드용
 - **시크릿(`.env`)은 mac mini** (`homelab-infra/services/home-coffing/.env`)
@@ -55,16 +62,23 @@ seed 스크립트는 home-coffing repo의 `apps/api/src/scripts/`에 있음. mac
 
 ---
 
-## 3. 자동 배포 트리거 (메인 흐름)
+## 3. 배포 트리거 (메인 흐름)
 
-**GitHub.com → `byun618/home-coffing` → Actions → "🚀 Deploy API" → Run workflow**
-- 브랜치 `main` 선택 → Run
+**자동 — main 머지**: 위 트리거 경로가 바뀐 PR 을 main 에 머지하면 "🚀 Deploy API" 가 바로 돈다 (typecheck → build → deploy).
+- 스키마 변경 ticket 은 머지 전에 §0·§1(백업)을 끝낸다 — 머지하는 순간 새 이미지가 뜬다. 머지 후 §4
+- 데이터 이관이 필요한 ticket(§0 에서 이 런북 적용 불가로 분류된 것)은 머지가 곧 배포이므로 **머지 시점 자체**를 이관 SQL·절차 준비가 끝난 뒤로 미룬다
 
-배포 완료 후 점검:
+**수동 — 재배포용**: GitHub.com → `byun618/home-coffing` → Actions → "🚀 Deploy API" → Run workflow
+- 브랜치 `main` 선택 → Run. 트리거 경로 밖 변경만 있었는데 배포가 필요할 때, 실패한 런을 다시 돌릴 때
+- 수동 런은 선택한 브랜치의 **최신 커밋**을 다시 빌드한다 — 이전 버전으로 되돌리는 롤백은 이것이 아니라 §7(이전 이미지 태그)
+- 수동 런이 대기 중일 때 다른 런(push·수동)이 오면 대기 중이던 런이 cancelled 로 대체될 수 있다 — Actions 탭에서 실제로 돈 런을 확인
+
+배포 완료 후 점검 (Actions 런 요약의 Typecheck·Build·Deploy 결과도 확인):
 ```bash
 ssh homelab 'export PATH=/opt/homebrew/bin:$PATH; docker logs home-coffing-api --tail 50'
 ```
 - `Nest application successfully started` 확인
+- ⚠ 런이 녹색이어도 컨테이너 정상 기동·스키마 일치까지 보장하지 않는다 (deploy job 은 `compose up` 후 로그를 찍을 뿐) — 머지 뒤 이 점검은 사람이 한다
 
 ---
 
@@ -165,6 +179,10 @@ rm -rf /tmp/home-coffing
 | schema:update 깜빡 | API는 떠 있지만 새 컬럼/테이블 없어서 500 | 스키마 변경 ticket이면 §4 수동 실행 |
 | 디스크 누적 | mac mini 용량 부족 | `docker image prune -af --filter "until=720h"` 또는 오래된 태그 명시 삭제 |
 | runner 컨테이너 다운 | 워크플로 큐에 쌓이고 안 실행 | `cd ~/repos/byun618/homelab-infra/services/_runner && docker compose up -d` |
+| typecheck 게이트 실패 | 머지했는데 운영이 안 바뀜. 런에서 `1-1. 타입체크 (api)` ❌, build·deploy skipped | 로컬에서 `pnpm build && (cd apps/api && npx tsc --noEmit)` 로 재현 → 고친 PR 을 다시 머지. 운영은 이전 이미지 그대로 |
+| shared-types 빌드 없이 tsc | `TS2307 Cannot find module '@home-coffing/shared-types'` | shared-types `dist` 가 먼저 있어야 한다 — `pnpm --filter @home-coffing/shared-types build` 후 tsc |
+| app·docs 만 바꾼 머지 | 배포 런이 안 생김 | 정상 (paths 필터). 꼭 필요하면 §3 수동 실행 |
+| 연속 머지 | 중간 런이 cancelled | 정상 (concurrency) — 실행 중 배포는 끝까지 가고 대기분은 최신 하나만 돈다 |
 
 ---
 
@@ -175,3 +193,4 @@ rm -rf /tmp/home-coffing
 | 2026-05-16 | 초기 작성 | T002→T005 통합 배포 사례 기반. 데이터 이관 없는 케이스 한정. |
 | 2026-05-16 | T008 자동 배포 흐름 반영 (1차) | GHA self-hosted + GHCR 안. 자동 schema:update 제거. |
 | 2026-05-16 | T008 local-only + homelab-infra 분리로 갱신 | GHCR 폐기 → mac mini local 이미지 관리. 운영 compose는 homelab-infra/services/ 가 owner. home-coffing repo는 build 전용. |
+| 2026-10-30 | LIFE-11 main push 자동 트리거 + typecheck 게이트 | main 머지 = 운영 배포(머지 즉시). api typecheck 실패 시 build·deploy 차단, concurrency 로 배포 직렬화. workflow_dispatch 는 재배포용(롤백은 §7 이전 이미지 태그). |
