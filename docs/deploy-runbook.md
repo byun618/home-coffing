@@ -66,6 +66,7 @@ seed 스크립트는 home-coffing repo의 `apps/api/src/scripts/`에 있음. mac
 
 **자동 — main 머지**: 위 트리거 경로가 바뀐 PR 을 main 에 머지하면 "🚀 Deploy API" 가 바로 돈다 (typecheck → build → deploy).
 - 스키마 변경 ticket 은 머지 전에 §0·§1(백업)을 끝낸다 — 머지하는 순간 새 이미지가 뜬다. 머지 후 §4
+- 데이터 이관이 필요한 ticket(§0 에서 이 런북 적용 불가로 분류된 것)은 머지가 곧 배포이므로 **머지 시점 자체**를 이관 SQL·절차 준비가 끝난 뒤로 미룬다
 
 **수동 — 재배포용**: GitHub.com → `byun618/home-coffing` → Actions → "🚀 Deploy API" → Run workflow
 - 브랜치 `main` 선택 → Run. 트리거 경로 밖 변경만 있었는데 배포가 필요할 때, 실패한 런을 다시 돌릴 때
@@ -77,6 +78,7 @@ seed 스크립트는 home-coffing repo의 `apps/api/src/scripts/`에 있음. mac
 ssh homelab 'export PATH=/opt/homebrew/bin:$PATH; docker logs home-coffing-api --tail 50'
 ```
 - `Nest application successfully started` 확인
+- ⚠ 런이 녹색이어도 컨테이너 정상 기동·스키마 일치까지 보장하지 않는다 (deploy job 은 `compose up` 후 로그를 찍을 뿐) — 머지 뒤 이 점검은 사람이 한다
 
 ---
 
