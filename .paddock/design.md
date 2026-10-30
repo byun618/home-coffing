@@ -13,7 +13,7 @@
 | 린트 | `pnpm lint` → api 만 eslint. **base 에서 실패**(eslint 미설치, `sh: eslint: command not found`) | 이 세션에서 실행함 |
 | 타입체크 | api `npx tsc --noEmit` 통과 · app `npx tsc --noEmit` **base 에서 오류 1건**(app/records/[id].tsx:184) | 이 세션에서 실행함 |
 | 테스트 | **없음** — 루트·api 에 test 스크립트·*.spec.ts 없음. CLAUDE.md·README 의 `pnpm test` 는 실제로 없음 | package.json, find |
-| CI | `.github/workflows/deploy-api.yml` — workflow_dispatch, self-hosted(맥미니) docker build → homelab-infra compose up | 파일 |
+| CI | `.github/workflows/deploy-api.yml` — main push(API 이미지 경로)·workflow_dispatch, self-hosted(맥미니) api 타입체크 → docker build → homelab-infra compose up (LIFE-11) | 파일 |
 | 사용자 실행 경로 | API: Docker 이미지(맥미니) · App: EAS `preview` 안드로이드 APK 사이드로드 / 개발은 실기기 Expo(dev client) | eas.json, docs/operations.md |
 | 런타임 자원 | homelab-infra 의 호스트 MySQL(스키마 `home_coffing`) 공유, 루트 `.env`(로컬 dev), 운영 시크릿은 homelab-infra | docs/operations.md, .env.example(키만) |
 | 외부 의존 | Amplitude, FCM, EAS, Cloudflare Tunnel, life-assistant API(일감), Pencil MCP(디자인) | README, operations.md |
@@ -51,7 +51,7 @@
 시작 `개발 중` → 게이트 ① 뒤 `검증 중` → PR 머지 뒤 `완료`. (`분석 중`·`디자인 중` 은 issue-think·issue-design 몫.) LIFE-N 을 이 레포가 발급하지 않는다 — 발급은 `issue-create`.
 
 ### D5
-API: 변경 브랜치를 `🚀 Deploy API` 와 같은 Dockerfile(`docker build --build-arg APP=api .`)로 빌드해 컨테이너로 띄우고 실제 엔드포인트를 호출 1회. 운영 배포(workflow_dispatch)는 사용자만.
+API: 변경 브랜치를 `🚀 Deploy API` 와 같은 Dockerfile(`docker build --build-arg APP=api .`)로 빌드해 컨테이너로 띄우고 실제 엔드포인트를 호출 1회. 운영 배포는 사용자만 — API 이미지 경로가 바뀐 PR 의 main 머지가 곧 배포(push 자동 실행)이므로 그 머지와 수동 재배포(workflow_dispatch)도 사용자 몫.
 App: 안드로이드 실기기에서 dev client(`pnpm --filter @home-coffing/app start`)로 해당 화면 동선 1회 — APK(EAS preview) 빌드는 사용자 지시 때만. 격리 실행(타입체크·단위)과 달리 실기기·실 API 를 거친다.
 
 ### D6
