@@ -10,7 +10,8 @@
   경량 경로여도 1회는 필요하다
 <!-- paddock:design D5 -->
   - 네이티브 = API 는 `Dockerfile` 로 빌드한 이미지(`docker build --build-arg APP=api .`, 배포 워크플로와 같은 경로)를 띄워 실제 엔드포인트를 호출,
-    앱은 안드로이드 실기기 dev client(`pnpm --filter @home-coffing/app start`)에서 해당 화면 동선을 수행. 운영 배포(`🚀 Deploy API`)·EAS APK 빌드는 사용자만 한다.
+    앱은 안드로이드 실기기 dev client(`pnpm --filter @home-coffing/app start`)에서 해당 화면 동선을 수행. 운영 배포·EAS APK 빌드는 사용자만 한다 —
+    API 이미지 경로가 바뀐 PR 의 main 머지가 곧 운영 배포(`🚀 Deploy API` push 자동 실행)이므로 그 머지와 수동 재배포도 사용자 몫이다.
   - 격리 실행 = 타입체크·빌드·node 스크립트처럼 실기기·실 API 를 거치지 않는 실행.
 <!-- /paddock:design -->
   - 문서·스킬·규칙 일감의 1회는 바뀐 문서가 지시하는 명령·절차를 사용자의 실제 도구·실재료로 수행한 원자료다 —
