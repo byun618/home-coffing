@@ -14,7 +14,7 @@ on:
       - 'pnpm-workspace.yaml'
       - 'turbo.json'
       - '.github/workflows/deploy-api.yml'
-  # 수동 재배포·롤백용
+  # 수동 재배포용 (선택한 ref 의 HEAD 를 다시 빌드) — 롤백은 runbook §7 이전 이미지 태그
   workflow_dispatch:
 
 # 배포 직렬화 — 실행 중인 런은 취소하지 않고, 대기 중인 런은 최신 하나만 남는다
@@ -53,6 +53,7 @@ jobs:
   typecheck:
     name: 1-1. 타입체크 (api)
     runs-on: self-hosted
+    timeout-minutes: 15
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4

@@ -67,8 +67,10 @@ seed 스크립트는 home-coffing repo의 `apps/api/src/scripts/`에 있음. mac
 **자동 — main 머지**: 위 트리거 경로가 바뀐 PR 을 main 에 머지하면 "🚀 Deploy API" 가 바로 돈다 (typecheck → build → deploy).
 - 스키마 변경 ticket 은 머지 전에 §0·§1(백업)을 끝낸다 — 머지하는 순간 새 이미지가 뜬다. 머지 후 §4
 
-**수동 — 재배포·롤백용**: GitHub.com → `byun618/home-coffing` → Actions → "🚀 Deploy API" → Run workflow
+**수동 — 재배포용**: GitHub.com → `byun618/home-coffing` → Actions → "🚀 Deploy API" → Run workflow
 - 브랜치 `main` 선택 → Run. 트리거 경로 밖 변경만 있었는데 배포가 필요할 때, 실패한 런을 다시 돌릴 때
+- 수동 런은 선택한 브랜치의 **최신 커밋**을 다시 빌드한다 — 이전 버전으로 되돌리는 롤백은 이것이 아니라 §7(이전 이미지 태그)
+- 수동 런이 대기 중일 때 다른 런(push·수동)이 오면 대기 중이던 런이 cancelled 로 대체될 수 있다 — Actions 탭에서 실제로 돈 런을 확인
 
 배포 완료 후 점검 (Actions 런 요약의 Typecheck·Build·Deploy 결과도 확인):
 ```bash
@@ -189,4 +191,4 @@ rm -rf /tmp/home-coffing
 | 2026-05-16 | 초기 작성 | T002→T005 통합 배포 사례 기반. 데이터 이관 없는 케이스 한정. |
 | 2026-05-16 | T008 자동 배포 흐름 반영 (1차) | GHA self-hosted + GHCR 안. 자동 schema:update 제거. |
 | 2026-05-16 | T008 local-only + homelab-infra 분리로 갱신 | GHCR 폐기 → mac mini local 이미지 관리. 운영 compose는 homelab-infra/services/ 가 owner. home-coffing repo는 build 전용. |
-| 2026-10-30 | LIFE-11 main push 자동 트리거 + typecheck 게이트 | main 머지 = 운영 배포(머지 즉시). api typecheck 실패 시 build·deploy 차단, concurrency 로 배포 직렬화. workflow_dispatch 는 재배포·롤백용. |
+| 2026-10-30 | LIFE-11 main push 자동 트리거 + typecheck 게이트 | main 머지 = 운영 배포(머지 즉시). api typecheck 실패 시 build·deploy 차단, concurrency 로 배포 직렬화. workflow_dispatch 는 재배포용(롤백은 §7 이전 이미지 태그). |
